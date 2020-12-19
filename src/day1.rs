@@ -38,7 +38,7 @@ In your expense report, what is the product of the three entries that sum to 202
 
 Your puzzle answer was 287730716.
 */
-use aoc_runner_derive::{aoc, aoc_generator};
+// use aoc_runner_derive::{aoc, aoc_generator};
 use std::cmp::Ordering;
 
 #[aoc_generator(day1)]
