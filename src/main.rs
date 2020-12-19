@@ -1,3 +1,4 @@
+extern crate advent_of_code_2020;
 extern crate aoc_runner;
 extern crate aoc_runner_derive;
 
