@@ -40,7 +40,6 @@ How many passwords are valid according to the new interpretation of the policies
 Your puzzle answer was 497.
 */
 use crate::parse_error::ParseError;
-use aoc_runner_derive::{aoc, aoc_generator};
 
 struct PasswdRule {
   min_occurrence: usize,
