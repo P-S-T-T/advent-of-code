@@ -51,7 +51,7 @@ struct PasswdRule {
 #[aoc_generator(day2)]
 fn parse_input_pw_list(password_list: &str) -> Vec<PasswdRule> {
   password_list
-    .split_terminator('\n')
+    .lines()
     .map(|password_check| {
       let mut part = password_check.split(' ');
       let mut occurrence = part.next().ok_or_else(|| ParseError::NoneError)?.split('-');
