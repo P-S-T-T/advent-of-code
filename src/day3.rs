@@ -69,7 +69,7 @@ In the above example, these slopes would find 2, 7, 3, 4, and 2 tree(s) respecti
 
 What do you get if you multiply together the number of trees encountered on each of the listed slopes?
 
-3093068400
+3_093_068_400
 */
 #[aoc_generator(day3)]
 fn get_input_map(map: &str) -> Vec<String> {
@@ -82,10 +82,6 @@ fn is_tree_at_spot(map_string: &str, position: usize) -> bool {
   spot == Some('#')
 }
 
-fn test_ride_part1(test_forrest_map: &[String]) {
-  assert_eq!(7, part1(test_forrest_map))
-}
-
 struct Slope {
   down: usize,
   right: usize,
@@ -96,7 +92,7 @@ fn ride(forest_map: &[String], slope: &Slope) -> usize {
     .iter()
     .enumerate()
     .skip(slope.down)
-    .step_by(slope.down)
+    .step_by(slope.down + 1)
     .filter(|(index, map_stripe)| is_tree_at_spot(map_stripe, slope.right * index))
     .count();
   println!("result = {}", re);
@@ -106,10 +102,6 @@ fn ride(forest_map: &[String], slope: &Slope) -> usize {
 #[aoc(day3, part1)]
 fn part1(forest_map: &[String]) -> usize {
   ride(forest_map, &Slope { down: 1, right: 3 })
-}
-
-fn test_ride_part2(test_forrest_map: &[String]) {
-  assert_eq!(336, part2(test_forrest_map))
 }
 
 #[aoc(day3, part2)]
@@ -122,4 +114,34 @@ fn part2(forest_map: &[String]) -> usize {
     Slope { down: 2, right: 1 },
   ];
   slopes.iter().map(|slope| ride(forest_map, slope)).product()
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  fn sample_input() -> &'static str {
+    "..##.......
+#...#...#..
+.#....#..#.
+..#.#...#.#
+.#...##..#.
+..#.##.....
+.#.#.#....#
+.#........#
+#.##...#...
+#...##....#
+.#..#...#.#"
+  }
+  fn parse_input() -> std::vec::Vec<std::string::String> {
+    get_input_map(sample_input())
+  }
+  #[test]
+  fn test_ride_part1() {
+    assert_eq!(7, part1(&parse_input()))
+  }
+  #[test]
+  fn test_ride_part2() {
+    assert_eq!(336, part2(&parse_input()))
+  }
 }
