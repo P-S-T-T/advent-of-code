@@ -73,7 +73,7 @@ What do you get if you multiply together the number of trees encountered on each
 */
 #[aoc_generator(day3)]
 fn get_input_map(map: &str) -> Vec<String> {
-  map.lines().map(str::to_string).collect()
+  map.lines().map(|str| str.trim().to_string()).collect()
 }
 
 fn is_tree_at_spot(map_string: &str, position: usize) -> bool {
@@ -90,9 +90,8 @@ struct Slope {
 fn ride(forest_map: &[String], slope: &Slope) -> usize {
   let re = forest_map
     .iter()
+    .step_by(slope.down)
     .enumerate()
-    .skip(slope.down)
-    .step_by(slope.down + 1)
     .filter(|(index, map_stripe)| is_tree_at_spot(map_stripe, slope.right * index))
     .count();
   println!("result = {}", re);
