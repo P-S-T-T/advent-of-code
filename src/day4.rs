@@ -50,17 +50,17 @@ Count the number of valid passports - those that have all required fields. Treat
 use std::num::ParseIntError;
 
 #[derive(PartialEq)]
-enum PassportAttribute<'a> {
+enum PassportAttribute {
   BirthYear(u16),
   IssueYear(u16),
   ExpirationYear(u16),
   Height(u16),
-  HairColor(&'a str),
-  EyeColor(&'a str),
-  PassportID(&'a str),
-  CountryID(&'a str),
+  HairColor(String),
+  EyeColor(String),
+  PassportID(String),
+  CountryID(String),
 }
-impl PassportAttribute<'_> {
+impl PassportAttribute {
   fn from_str(attribute: &str) -> Result<PassportAttribute, ParseIntError> {
     let attribute_with_value: Vec<&str> = attribute.split(':').collect();
     match attribute_with_value {
@@ -92,21 +92,21 @@ impl PassportAttribute<'_> {
           Err(err) => Err(err),
         }
       }
-      hcl if hcl[0] == "hcl" => Ok(PassportAttribute::HairColor(hcl[1])),
-      ecl if ecl[0] == "ecl" => Ok(PassportAttribute::EyeColor(ecl[1])),
-      pid if pid[0] == "pid" => Ok(PassportAttribute::PassportID(pid[1])),
-      cid if cid[0] == "cid" => Ok(PassportAttribute::CountryID(cid[1])),
+      hcl if hcl[0] == "hcl" => Ok(PassportAttribute::HairColor(String::from(hcl[1]))),
+      ecl if ecl[0] == "ecl" => Ok(PassportAttribute::EyeColor(String::from(ecl[1]))),
+      pid if pid[0] == "pid" => Ok(PassportAttribute::PassportID(String::from(pid[1]))),
+      cid if cid[0] == "cid" => Ok(PassportAttribute::CountryID(String::from(cid[1]))),
       _ => Err("create ParseIntError".parse::<u16>().unwrap_err()),
     }
   }
 }
 
-enum Passport<'a> {
-  Valid(Vec<PassportAttribute<'a>>),
+enum Passport {
+  Valid(Vec<PassportAttribute>),
   // Invalid(&'a [Result<PassportAttribute<'a>, ParseIntError>]),
   Invalid,
 }
-impl Passport<'_> {
+impl Passport {
   fn from_attributes(attributes: Vec<Result<PassportAttribute, ParseIntError>>) -> Passport {
     let attributes = attributes
       .into_iter()
@@ -123,44 +123,28 @@ impl Passport<'_> {
     match attributes.len() {
       7 => Passport::contains_seven_attributes(&attributes),
       8 => {
-        attributes.iter().any(|a| match a {
-          PassportAttribute::CountryID(_) => true,
-          _ => false,
-        }) && Passport::contains_seven_attributes(&attributes)
+        attributes.iter().any(|a| matches!(a, 
+          PassportAttribute::CountryID(_))
+        ) && Passport::contains_seven_attributes(&attributes)
       }
       _ => false,
     }
   }
 
   fn contains_seven_attributes(attributes: &[PassportAttribute]) -> bool {
-    attributes.iter().any(|a| match a {
-      PassportAttribute::BirthYear(_) => true,
-      _ => false,
-    }) && attributes.iter().any(|a| match a {
-      PassportAttribute::IssueYear(_) => true,
-      _ => false,
-    }) && attributes.iter().any(|a| match a {
-      PassportAttribute::ExpirationYear(_) => true,
-      _ => false,
-    }) && attributes.iter().any(|a| match a {
-      PassportAttribute::Height(_) => true,
-      _ => false,
-    }) && attributes.iter().any(|a| match a {
-      PassportAttribute::HairColor(_) => true,
-      _ => false,
-    }) && attributes.iter().any(|a| match a {
-      PassportAttribute::EyeColor(_) => true,
-      _ => false,
-    }) && attributes.iter().any(|a| match a {
-      PassportAttribute::PassportID(_) => true,
-      _ => false,
-    })
+    attributes.iter().any(|a| matches! (a,
+      PassportAttribute::BirthYear(_))
+    ) && attributes.iter().any(|a| matches! (a, PassportAttribute::IssueYear(_))) 
+    && attributes.iter().any(|a| matches! (a, PassportAttribute::ExpirationYear(_))) 
+    && attributes.iter().any(|a| matches! (a, PassportAttribute::Height(_))) 
+    && attributes.iter().any(|a| matches! (a, PassportAttribute::HairColor(_))) 
+      && attributes.iter().any(|a| matches! (a, PassportAttribute::EyeColor(_))) 
+      && attributes.iter().any(|a| matches! (a, PassportAttribute::PassportID(_)))
   }
 }
 
 #[aoc_generator(day4)]
 fn parse_input(input: &str) -> Vec<Passport> {
-  let passports: Vec<Passport>;
   let passport_entries = input.split("\n\n");
 
   passport_entries
@@ -173,20 +157,19 @@ fn parse_input(input: &str) -> Vec<Passport> {
       Passport::from_attributes(attributes)
     })
     .collect::<Vec<Passport>>()
-}
+  }
 
-// #[aoc(day4, part1)]
-fn part1(passports: Vec<Passport>) -> usize {
+#[aoc(day4, part1)]
+fn part1(passports: &[Passport]) -> usize {
   passports
-    .into_iter()
-    .filter(|pass| match pass {
-      Passport::Valid(_) => true,
-      _ => false,
-    })
+    .iter()
+    .filter(|pass| matches!(pass,
+      Passport::Valid(_))
+)
     .count()
 }
 
-// #[aoc(day3, part2)]
+// #[aoc(day4, part2)]
 // fn part2(forest_map: &[String]) -> usize {}
 
 #[cfg(test)]
@@ -208,12 +191,13 @@ mod tests {
     hcl:#cfa07d eyr:2025 pid:166559648
     iyr:2011 ecl:brn hgt:59in"
   }
-  fn parse_input_test() -> Vec<Passport<'static>> {
+  fn parse_input_test() -> Vec<Passport> {
     parse_input(sample_input())
   }
   #[test]
   fn test_part1() {
-    assert_eq!(2, part1(parse_input_test()))
+    assert_eq!(2, part1(& parse_input_test()))
+    // assert_eq!(2, part1(sample_input()))
   }
   // #[test]
   // fn test_ride_part2() {
