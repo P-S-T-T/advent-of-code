@@ -120,7 +120,7 @@ iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021 pid:093154719
 Count the number of valid passports - those that have all required fields and valid values. Continue to treat cid as optional. In your batch file, how many passports are valid?
 
 */
-use std::num::ParseIntError;
+use crate::parse_error::ParseError;
 
 use regex::Regex;
 
@@ -136,28 +136,46 @@ enum PassportAttribute {
     CountryID(String),
 }
 impl PassportAttribute {
-    fn from_str(attribute: &str) -> Result<PassportAttribute, ParseIntError> {
+    fn from_str(attribute: &str) -> Result<PassportAttribute, ParseError> {
         let attribute_with_value: Vec<&str> = attribute.split(':').collect();
         match attribute_with_value {
-            byr if byr[0] == "byr" => {
-                let value = (*byr[1]).parse::<u16>();
+            birth_year if birth_year[0] == "byr" => {
+                let value = (*birth_year[1]).parse::<u16>();
                 match value {
-                    Ok(n) => Ok(PassportAttribute::BirthYear(n)),
-                    Err(err) => Err(err),
+                    Ok(n) => {
+                        if (1920..2002 + 1).contains(&n) {
+                            Ok(PassportAttribute::BirthYear(n))
+                        } else {
+                            Err(ParseError::ValidationError)
+                        }
+                    }
+                    _ => Err(ParseError::ValidationError),
                 }
             }
-            iyr if iyr[0] == "iyr" => {
-                let value = (*iyr[1]).parse::<u16>();
+            issue_year if issue_year[0] == "iyr" => {
+                let value = (*issue_year[1]).parse::<u16>();
                 match value {
-                    Ok(n) => Ok(PassportAttribute::IssueYear(n)),
-                    Err(err) => Err(err),
+                    Ok(n) => {
+                        if (2010..2020 + 1).contains(&n) {
+                            Ok(PassportAttribute::IssueYear(n))
+                        } else {
+                            Err(ParseError::ValidationError)
+                        }
+                    }
+                    _ => Err(ParseError::ValidationError),
                 }
             }
-            eyr if eyr[0] == "eyr" => {
-                let value = (*eyr[1]).parse::<u16>();
+            expiration_year if expiration_year[0] == "eyr" => {
+                let value = (*expiration_year[1]).parse::<u16>();
                 match value {
-                    Ok(n) => Ok(PassportAttribute::ExpirationYear(n)),
-                    Err(err) => Err(err),
+                    Ok(n) => {
+                        if (2010..2020 + 1).contains(&n) {
+                            Ok(PassportAttribute::ExpirationYear(n))
+                        } else {
+                            Err(ParseError::ValidationError)
+                        }
+                    }
+                    _ => Err(ParseError::ValidationError),
                 }
             }
             hgt if hgt[0] == "hgt" => Ok(PassportAttribute::Height(String::from(hgt[1]))),
@@ -165,7 +183,7 @@ impl PassportAttribute {
             ecl if ecl[0] == "ecl" => Ok(PassportAttribute::EyeColor(String::from(ecl[1]))),
             pid if pid[0] == "pid" => Ok(PassportAttribute::PassportID(String::from(pid[1]))),
             cid if cid[0] == "cid" => Ok(PassportAttribute::CountryID(String::from(cid[1]))),
-            _ => Err("create ParseIntError".parse::<u16>().unwrap_err()),
+            _ => Err(ParseError::NoneError),
         }
     }
 }
@@ -173,14 +191,14 @@ impl PassportAttribute {
 #[derive(Debug)]
 enum Passport {
     Valid(Vec<PassportAttribute>),
-    // Invalid(&'a [Result<PassportAttribute<'a>, ParseIntError>]),
+    // Invalid(&'a [Result<PassportAttribute<'a>, ParseError>]),
     Invalid,
 }
 impl Passport {
-    fn from_attributes(attributes: Vec<Result<PassportAttribute, ParseIntError>>) -> Passport {
+    fn from_attributes(attributes: Vec<Result<PassportAttribute, ParseError>>) -> Passport {
         let attributes = attributes
             .into_iter()
-            .collect::<Result<Vec<PassportAttribute>, ParseIntError>>();
+            .collect::<Result<Vec<PassportAttribute>, ParseError>>();
 
         match attributes {
             Err(_) => Passport::Invalid,
@@ -231,7 +249,6 @@ impl Passport {
 fn parse_input(input: &str) -> Vec<Passport> {
     let re = Regex::new(r"\n\s*\n").unwrap();
     let passport_entries = re.split(input);
-    // let passport_entries = input.split("\n    \n");
     let result = passport_entries
         .map(|entry| {
             println!("entry {:#?}", entry);
