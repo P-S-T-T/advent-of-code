@@ -124,65 +124,104 @@ use crate::parse_error::ParseError;
 
 use regex::Regex;
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 enum PassportAttribute {
     BirthYear(u16),
     IssueYear(u16),
     ExpirationYear(u16),
-    Height(String),
+    HeightInCm(u16),
+    HeightInIn(u16),
     HairColor(String),
     EyeColor(String),
-    PassportID(String),
+    PassportID(u32),
     CountryID(String),
 }
 impl PassportAttribute {
-    fn from_str(attribute: &str) -> Result<PassportAttribute, ParseError> {
+    fn new(attribute: &str) -> Result<PassportAttribute, ParseError> {
         let attribute_with_value: Vec<&str> = attribute.split(':').collect();
-        match attribute_with_value {
-            birth_year if birth_year[0] == "byr" => {
-                let value = (*birth_year[1]).parse::<u16>();
+        match attribute_with_value[0] {
+            "byr" => {
+                let value = (*attribute_with_value[1]).parse::<u16>();
                 match value {
-                    Ok(n) => {
-                        if (1920..2002 + 1).contains(&n) {
-                            Ok(PassportAttribute::BirthYear(n))
-                        } else {
-                            Err(ParseError::ValidationError)
-                        }
-                    }
-                    _ => Err(ParseError::ValidationError),
+                    Ok(n) => match n {
+                        1920..=2002 => Ok(PassportAttribute::BirthYear(n)),
+                        _ => Err(ParseError::ValidationError),
+                    },
+                    Err(err) => Err(ParseError::ParseIntError(err)),
                 }
             }
-            issue_year if issue_year[0] == "iyr" => {
-                let value = (*issue_year[1]).parse::<u16>();
+            "iyr" => {
+                let value = (*attribute_with_value[1]).parse::<u16>();
                 match value {
-                    Ok(n) => {
-                        if (2010..2020 + 1).contains(&n) {
-                            Ok(PassportAttribute::IssueYear(n))
-                        } else {
-                            Err(ParseError::ValidationError)
-                        }
-                    }
-                    _ => Err(ParseError::ValidationError),
+                    Ok(n) => match n {
+                        2010..=2020 => Ok(PassportAttribute::IssueYear(n)),
+                        _ => Err(ParseError::ValidationError),
+                    },
+                    Err(err) => Err(ParseError::ParseIntError(err)),
                 }
             }
-            expiration_year if expiration_year[0] == "eyr" => {
-                let value = (*expiration_year[1]).parse::<u16>();
+            "eyr" => {
+                let value = (*attribute_with_value[1]).parse::<u16>();
                 match value {
-                    Ok(n) => {
-                        if (2010..2020 + 1).contains(&n) {
-                            Ok(PassportAttribute::ExpirationYear(n))
-                        } else {
-                            Err(ParseError::ValidationError)
-                        }
-                    }
-                    _ => Err(ParseError::ValidationError),
+                    Ok(n) => match n {
+                        2020..=2030 => Ok(PassportAttribute::ExpirationYear(n)),
+                        _ => Err(ParseError::ValidationError),
+                    },
+                    Err(err) => Err(ParseError::ParseIntError(err)),
                 }
             }
-            hgt if hgt[0] == "hgt" => Ok(PassportAttribute::Height(String::from(hgt[1]))),
-            hcl if hcl[0] == "hcl" => Ok(PassportAttribute::HairColor(String::from(hcl[1]))),
-            ecl if ecl[0] == "ecl" => Ok(PassportAttribute::EyeColor(String::from(ecl[1]))),
-            pid if pid[0] == "pid" => Ok(PassportAttribute::PassportID(String::from(pid[1]))),
-            cid if cid[0] == "cid" => Ok(PassportAttribute::CountryID(String::from(cid[1]))),
+            "hgt" => {
+                let height_in_cm = (*attribute_with_value[1])
+                    .strip_suffix("cm")
+                    .and_then(|h| h.parse::<u16>().ok());
+                match height_in_cm {
+                    Some(n) => match n {
+                        150..=193 => Ok(PassportAttribute::HeightInCm(n)),
+                        _ => Err(ParseError::ValidationError),
+                    },
+                    None => {
+                        let height_in_in = (*attribute_with_value[1])
+                            .strip_suffix("in")
+                            .and_then(|h| h.parse::<u16>().ok());
+                        match height_in_in {
+                            Some(n) => match n {
+                                59..=76 => Ok(PassportAttribute::HeightInIn(n)),
+                                _ => Err(ParseError::ValidationError),
+                            },
+                            None => Err(ParseError::ValidationError),
+                        }
+                    }
+                }
+            }
+            "hcl" => {
+                let regex = Regex::new(r"#[0-9a-f]{6}").unwrap();
+
+                match regex.is_match(attribute_with_value[1]) {
+                    true => Ok(PassportAttribute::HairColor(String::from(
+                        attribute_with_value[1],
+                    ))),
+                    false => Err(ParseError::ValidationError),
+                }
+            }
+            "ecl" => match attribute_with_value[1] {
+                "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth" => Ok(
+                    PassportAttribute::EyeColor(String::from(attribute_with_value[1])),
+                ),
+                _ => Err(ParseError::ValidationError),
+            },
+            "pid" => {
+                let value = (*attribute_with_value[1]).parse::<u32>();
+                match value {
+                    Ok(n) => match n {
+                        0..=999_999_999 => Ok(PassportAttribute::PassportID(n)),
+                        _ => Err(ParseError::ValidationError),
+                    },
+                    Err(err) => Err(ParseError::ParseIntError(err)),
+                }
+            }
+            "cid" => Ok(PassportAttribute::CountryID(String::from(
+                attribute_with_value[1],
+            ))),
             _ => Err(ParseError::NoneError),
         }
     }
@@ -195,7 +234,7 @@ enum Passport {
     Invalid,
 }
 impl Passport {
-    fn from_attributes(attributes: Vec<Result<PassportAttribute, ParseError>>) -> Passport {
+    fn new(attributes: Vec<Result<PassportAttribute, ParseError>>) -> Passport {
         let attributes = attributes
             .into_iter()
             .collect::<Result<Vec<PassportAttribute>, ParseError>>();
@@ -230,9 +269,12 @@ impl Passport {
             && attributes
                 .iter()
                 .any(|a| matches!(a, PassportAttribute::ExpirationYear(_)))
-            && attributes
+            && (attributes
                 .iter()
-                .any(|a| matches!(a, PassportAttribute::Height(_)))
+                .any(|a| matches!(a, PassportAttribute::HeightInCm(_)))
+                || attributes
+                    .iter()
+                    .any(|a| matches!(a, PassportAttribute::HeightInIn(_))))
             && attributes
                 .iter()
                 .any(|a| matches!(a, PassportAttribute::HairColor(_)))
@@ -254,9 +296,9 @@ fn parse_input(input: &str) -> Vec<Passport> {
             println!("entry {:#?}", entry);
             let attributes = entry
                 .split_whitespace()
-                .map(|a| PassportAttribute::from_str(a))
+                .map(|a| PassportAttribute::new(a))
                 .collect();
-            let pass = Passport::from_attributes(attributes);
+            let pass = Passport::new(attributes);
             println!("Pass {:#?}", pass);
             pass
         })
