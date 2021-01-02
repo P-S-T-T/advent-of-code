@@ -163,6 +163,12 @@ impl PassportAttribute {
             }
             "hgt" => {
                 let height_raw = attribute_with_value[1];
+                if height_raw.len() < 3 {
+                    return Ok(PassportAttribute::Height {
+                        value: 0,
+                        unit: String::from(height_raw),
+                    });
+                }
                 let (height_value_string, height_unit) = height_raw.split_at(height_raw.len() - 2);
                 let height_value = height_value_string.parse::<u16>();
                 match height_value {
@@ -372,10 +378,13 @@ mod tests {
     use super::*;
 
     fn sample_input() -> &'static str {
-        "iyr:2010
-        hgt:138 ecl:grn pid:21019503 eyr:1937 byr:2008 hcl:z
+        "ecl:gry pid:860033327 eyr:2020 hcl:#fffffd
+    byr:1937 iyr:2017 cid:147 hgt:1
+    
+    ecl:gry pid:860033327 eyr:2020 hcl:#fffffd
+    byr:1937 iyr:2017 cid:147 hgt:18
 
-        ecl:gry pid:860033327 eyr:2020 hcl:#fffffd
+    ecl:gry pid:860033327 eyr:2020 hcl:#fffffd
     byr:1937 iyr:2017 cid:147 hgt:183cm
     
     iyr:2013 ecl:amb cid:350 eyr:2023 pid:028048884
@@ -394,8 +403,7 @@ mod tests {
     }
     #[test]
     fn test_part1() {
-        assert_eq!(2, part1(&parse_input_test()))
-        // assert_eq!(2, part1(sample_input()))
+        assert_eq!(4, part1(&parse_input_test()))
     }
     // #[test]
     // fn test_ride_part2() {
