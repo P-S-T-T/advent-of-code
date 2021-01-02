@@ -119,6 +119,9 @@ iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021 pid:093154719
 
 Count the number of valid passports - those that have all required fields and valid values. Continue to treat cid as optional. In your batch file, how many passports are valid?
 
+Your puzzle answer was 172.
+
+Both parts of this puzzle are complete! They provide two gold stars: **
 */
 use crate::parse_error::ParseError;
 
@@ -264,6 +267,9 @@ impl PassportAttributeNotValidated {
                 _ => Err(ParseError::ValidationError),
             },
             PassportAttributeNotValidated::PassportID(s) => {
+                if s.len() != 9 {
+                    return Err(ParseError::ValidationError);
+                }
                 let value = s.parse::<u32>();
                 match value {
                     Ok(n) => match n {
@@ -385,8 +391,13 @@ fn part1(passports: &[Passport]) -> usize {
 fn part2(passports: &[Passport]) -> usize {
     passports
         .iter()
-        .filter(|pass| !matches!(pass, Passport::Invalid))
-        .map(|p| Passport::from_not_validated(p))
+        // .filter(|pass| !matches!(pass, Passport::Invalid))
+        // .map(|p| Passport::from_not_validated(p))
+        .map(|p| match p {
+            Passport::Invalid => Ok(Passport::Invalid),
+            Passport::NotValidated(_) => Passport::from_not_validated(p),
+            Passport::Valid(_) => panic!("Should not contain valid passports!"),
+        })
         .filter(|pass| matches!(pass, Ok(Passport::Valid(_))))
         .count()
 }
