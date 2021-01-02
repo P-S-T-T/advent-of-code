@@ -363,20 +363,16 @@ impl Passport {
 fn parse_input(input: &str) -> Vec<Passport> {
     let re = Regex::new(r"\n\s*\n").unwrap();
     let passport_entries = re.split(input);
-    let result = passport_entries
+
+    passport_entries
         .map(|entry| {
-            println!("entry {:#?}", entry);
             let attributes = entry
                 .split_whitespace()
                 .map(|a| PassportAttributeNotValidated::new(a))
                 .collect();
-            let pass = Passport::new(attributes);
-            println!("Pass {:#?}", pass);
-            pass
+            Passport::new(attributes)
         })
-        .collect::<Vec<Passport>>();
-    println!("Passports: {:#?}", result);
-    result
+        .collect::<Vec<Passport>>()
 }
 
 #[aoc(day4, part1)]
