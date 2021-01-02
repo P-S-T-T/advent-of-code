@@ -468,9 +468,4 @@ mod tests {
     fn test_part2_valid_input() {
         assert_eq!(4, part2(&parse_input_test_part2_valid()))
     }
-
-    // #[test]
-    // fn test_ride_part2() {
-    //   assert_eq!(336, part2(&parse_input()))
-    // }
 }
