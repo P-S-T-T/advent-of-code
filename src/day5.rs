@@ -116,7 +116,7 @@ fn part1(boarding_passes: &[String]) -> u32 {
     })
 }
 
-#[aoc(day5, part2)]
+#[aoc(day5, part2, iterative)]
 fn part2(boarding_passes: &[String]) -> u32 {
     let mut seat_numbers = boarding_passes
         .iter()
@@ -141,6 +141,23 @@ fn part2(boarding_passes: &[String]) -> u32 {
     }
 
     found_seat
+}
+
+#[aoc(day5, part2, functional)]
+fn part2_functional(boarding_passes: &[String]) -> u32 {
+    let mut seat_numbers = boarding_passes
+        .iter()
+        .map(|boarding_code| decode_boarding_pass(boarding_code))
+        .collect::<Vec<u32>>();
+
+    seat_numbers.sort_unstable();
+
+    seat_numbers
+        .iter()
+        .fold(0, |previous: u32, seat| match seat - previous {
+            2 => seat - 1,
+            _ => *seat,
+        })
 }
 
 #[cfg(test)]
@@ -190,5 +207,9 @@ mod tests {
     #[test]
     fn test_part2() {
         assert_eq!(819, part2(&parse_test_input()))
+    }
+    #[test]
+    fn test_part2_functional() {
+        assert_eq!(819, part2_functional(&parse_test_input()))
     }
 }
