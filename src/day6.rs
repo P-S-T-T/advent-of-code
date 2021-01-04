@@ -82,10 +82,12 @@ In this example, the sum of these counts is 3 + 0 + 1 + 1 + 1 = 6.
 
 For each group, count the number of questions to which everyone answered "yes". What is the sum of those counts?
 
+3143
 */
+use std::collections::{HashMap, HashSet};
+
 // use crate::parse_error::ParseError;
 use regex::Regex;
-use std::collections::HashSet;
 
 #[aoc_generator(day6)]
 fn parse_input(input: &str) -> Vec<Vec<String>> {
@@ -99,21 +101,45 @@ fn parse_input(input: &str) -> Vec<Vec<String>> {
 
 #[aoc(day6, part1)]
 fn part1(grouped_answers: &[Vec<String>]) -> u32 {
-    grouped_answers
-        .iter()
-        .fold(0, |sum, answers| sum + count_yes_answers(answers))
+    grouped_answers.iter().fold(0, |sum, answers| {
+        sum + count_yes_answers_from_anyone(answers)
+    })
 }
 
-fn count_yes_answers(answers: &[String]) -> u32 {
+fn count_yes_answers_from_anyone(answers: &[String]) -> u32 {
     let mut unique_answers: HashSet<char> = HashSet::new();
     answers.iter().flat_map(|s| s.chars()).for_each(|c| {
         unique_answers.insert(c);
     });
     unique_answers.len() as u32
-    // let c: Vec<char> = answers.iter().flat_map(|s| s.chars()).collect();
-    // c.iter().for_each(|c| {
-    //     unique_answers.insert(*c);
-    // });
+}
+
+#[aoc(day6, part2)]
+fn part2(grouped_answers: &[Vec<String>]) -> u32 {
+    grouped_answers.iter().fold(0, |sum, answers| {
+        sum + count_yes_answers_from_everyone(answers)
+    })
+}
+
+fn count_yes_answers_from_everyone(answers: &[String]) -> u32 {
+    let answerers = answers.len() as u8;
+    if answerers == 1 {
+        return answers.first().expect("got an empty answer!").len() as u32;
+    }
+    let mut all_answers: HashMap<char, u8> = HashMap::new();
+    answers.iter().flat_map(|s| s.chars()).for_each(|c| {
+        all_answers.insert(c, {
+            match all_answers.get(&c) {
+                None => 1,
+                Some(n) => n + 1,
+            }
+        });
+    });
+
+    all_answers
+        .keys()
+        .filter(|key| *all_answers.get(*key).unwrap() == answerers)
+        .count() as u32
 }
 // #[aoc(day6, part2)]
 // fn part2(boarding_passes: &[String]) -> u32 {}
@@ -139,30 +165,36 @@ mod tests {
         
         b"
     }
+
     fn parse_test_input() -> Vec<Vec<String>> {
         parse_input(sample_input_part1())
     }
+
     #[test]
-    fn test_count_yes_answers() {
-        assert_eq!(3, count_yes_answers(&[String::from("abc")]));
+    fn test_count_yes_answers_from_anyone() {
+        assert_eq!(3, count_yes_answers_from_anyone(&[String::from("abc")]));
         assert_eq!(
             3,
-            count_yes_answers(&[String::from("a"), String::from("b"), String::from("c")])
+            count_yes_answers_from_anyone(&[
+                String::from("a"),
+                String::from("b"),
+                String::from("c")
+            ])
         );
         assert_eq!(
             3,
-            count_yes_answers(&[String::from("ab"), String::from("ac")])
+            count_yes_answers_from_anyone(&[String::from("ab"), String::from("ac")])
         );
         assert_eq!(
             1,
-            count_yes_answers(&[
+            count_yes_answers_from_anyone(&[
                 String::from("a"),
                 String::from("a"),
                 String::from("a"),
                 String::from("a")
             ])
         );
-        assert_eq!(1, count_yes_answers(&[String::from("b")]));
+        assert_eq!(1, count_yes_answers_from_anyone(&[String::from("b")]));
     }
 
     #[test]
@@ -170,8 +202,8 @@ mod tests {
         assert_eq!(11, part1(&parse_test_input()))
     }
 
-    // #[test]
-    // fn test_part2() {
-    //     assert_eq!(819, part2(&parse_test_input()))
-    // }
+    #[test]
+    fn test_part2() {
+        assert_eq!(6, part2(&parse_test_input()))
+    }
 }
