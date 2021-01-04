@@ -73,29 +73,29 @@ fn decode_boarding_pass(boarding_code: &str) -> u32 {
     row as u32 * 8 + column as u32
 }
 
-fn decode_code_sequence(code_sequence: &str, lowest: u8, highest: u8) -> u8 {
-    let (lowest, highest) = code_sequence
-        .chars()
-        .fold((lowest, highest), |(lowest, highest), code| {
-            bin_convert_halfen(code, lowest, highest)
-        });
-    // for code in code_sequence.chars() {
-    //     (lowest, highest) = bin_convert_halfen(code, lowest, highest);
-    //     println!("lowest {}, highest {}", lowest, highest)
-    // }
+// fn decode_code_sequence(code_sequence: &str, lowest: u8, highest: u8) -> u8 {
+//     let (lowest, highest) = code_sequence
+//         .chars()
+//         .fold((lowest, highest), |(lowest, highest), code| {
+//             bin_convert_halfen(code, lowest, highest)
+//         });
+//     // for code in code_sequence.chars() {
+//     //     (lowest, highest) = bin_convert_halfen(code, lowest, highest);
+//     //     println!("lowest {}, highest {}", lowest, highest)
+//     // }
 
-    assert!(lowest == highest);
-    lowest
-}
+//     assert!(lowest == highest);
+//     lowest
+// }
 
-fn bin_convert_halfen(code: char, mut lowest: u8, mut highest: u8) -> (u8, u8) {
-    match code {
-        'F' | 'L' => highest /= 2,
-        'B' | 'R' => lowest = highest / 2,
-        _ => panic!("wrong code letter {}", code),
-    }
-    (lowest, highest)
-}
+// fn bin_convert_halfen(code: char, mut lowest: u8, mut highest: u8) -> (u8, u8) {
+//     match code {
+//         'F' | 'L' => highest /= 2,
+//         'B' | 'R' => lowest = highest / 2,
+//         _ => panic!("wrong code letter {}", code),
+//     }
+//     (lowest, highest)
+// }
 
 fn bin_convert_direct(code_sequence: &str) -> u8 {
     let bin: String = code_sequence
