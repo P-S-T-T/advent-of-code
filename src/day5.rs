@@ -164,15 +164,14 @@ fn part2_functional(boarding_passes: &[String]) -> u32 {
 mod tests {
     use super::*;
 
-    fn sample_input_part1() -> &'static str {
-        "FBFBBFFRLR
+    const SAMPLE_INPUT: &str = "FBFBBFFRLR
          BFFFBBFRRR
          FFFBBBFRRR
          BBFFBBFLRL
-         BBFFBBFRLL"
-    }
+         BBFFBBFRLL";
+
     fn parse_test_input() -> Vec<String> {
-        parse_input(sample_input_part1())
+        parse_input(SAMPLE_INPUT)
     }
     #[test]
     fn test_row_and_seat_resolution() {

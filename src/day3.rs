@@ -73,54 +73,53 @@ What do you get if you multiply together the number of trees encountered on each
 */
 #[aoc_generator(day3)]
 fn get_input_map(map: &str) -> Vec<String> {
-  map.lines().map(|str| str.trim().to_string()).collect()
+    map.lines().map(|str| str.trim().to_string()).collect()
 }
 
 fn is_tree_at_spot(map_string: &str, position: usize) -> bool {
-  let mut map_stripe = map_string.chars();
-  let spot = map_stripe.nth(position % map_string.len());
-  spot == Some('#')
+    let mut map_stripe = map_string.chars();
+    let spot = map_stripe.nth(position % map_string.len());
+    spot == Some('#')
 }
 
 struct Slope {
-  down: usize,
-  right: usize,
+    down: usize,
+    right: usize,
 }
 
 fn ride(forest_map: &[String], slope: &Slope) -> usize {
-  let re = forest_map
-    .iter()
-    .step_by(slope.down)
-    .enumerate()
-    .filter(|(index, map_stripe)| is_tree_at_spot(map_stripe, slope.right * index))
-    .count();
-  println!("result = {}", re);
-  re
+    let re = forest_map
+        .iter()
+        .step_by(slope.down)
+        .enumerate()
+        .filter(|(index, map_stripe)| is_tree_at_spot(map_stripe, slope.right * index))
+        .count();
+    println!("result = {}", re);
+    re
 }
 
 #[aoc(day3, part1)]
 fn part1(forest_map: &[String]) -> usize {
-  ride(forest_map, &Slope { down: 1, right: 3 })
+    ride(forest_map, &Slope { down: 1, right: 3 })
 }
 
 #[aoc(day3, part2)]
 fn part2(forest_map: &[String]) -> usize {
-  let slopes = &[
-    Slope { down: 1, right: 1 },
-    Slope { down: 1, right: 3 },
-    Slope { down: 1, right: 5 },
-    Slope { down: 1, right: 7 },
-    Slope { down: 2, right: 1 },
-  ];
-  slopes.iter().map(|slope| ride(forest_map, slope)).product()
+    let slopes = &[
+        Slope { down: 1, right: 1 },
+        Slope { down: 1, right: 3 },
+        Slope { down: 1, right: 5 },
+        Slope { down: 1, right: 7 },
+        Slope { down: 2, right: 1 },
+    ];
+    slopes.iter().map(|slope| ride(forest_map, slope)).product()
 }
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  fn sample_input() -> &'static str {
-    "..##.......
+    const SAMPLE_INPUT: &str = "..##.......
 #...#...#..
 .#....#..#.
 ..#.#...#.#
@@ -130,17 +129,17 @@ mod tests {
 .#........#
 #.##...#...
 #...##....#
-.#..#...#.#"
-  }
-  fn parse_input() -> std::vec::Vec<std::string::String> {
-    get_input_map(sample_input())
-  }
-  #[test]
-  fn test_ride_part1() {
-    assert_eq!(7, part1(&parse_input()))
-  }
-  #[test]
-  fn test_ride_part2() {
-    assert_eq!(336, part2(&parse_input()))
-  }
+.#..#...#.#";
+
+    fn parse_input() -> std::vec::Vec<std::string::String> {
+        get_input_map(SAMPLE_INPUT)
+    }
+    #[test]
+    fn test_ride_part1() {
+        assert_eq!(7, part1(&parse_input()))
+    }
+    #[test]
+    fn test_ride_part2() {
+        assert_eq!(336, part2(&parse_input()))
+    }
 }

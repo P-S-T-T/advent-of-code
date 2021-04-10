@@ -148,8 +148,7 @@ fn count_yes_answers_from_everyone(answers: &[String]) -> u32 {
 mod tests {
     use super::*;
 
-    fn sample_input_part1() -> &'static str {
-        "abc
+    const SAMPLE_INPUT: &str = "abc
 
         a
         b
@@ -163,11 +162,10 @@ mod tests {
         a
         a
         
-        b"
-    }
+        b";
 
     fn parse_test_input() -> Vec<Vec<String>> {
-        parse_input(sample_input_part1())
+        parse_input(SAMPLE_INPUT)
     }
 
     #[test]

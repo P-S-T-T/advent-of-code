@@ -402,8 +402,7 @@ fn part2(passports: &[Passport]) -> usize {
 mod tests {
     use super::*;
 
-    fn sample_input_part1() -> &'static str {
-        "ecl:gry pid:860033327 eyr:2020 hcl:#fffffd
+    const SAMPLE_INPUT_PART1: &str = "ecl:gry pid:860033327 eyr:2020 hcl:#fffffd
     byr:1937 iyr:2017 cid:147 hgt:1
     
     ecl:gry pid:860033327 eyr:2020 hcl:#fffffd
@@ -421,18 +420,17 @@ mod tests {
     hgt:179cm
     
     hcl:#cfa07d eyr:2025 pid:166559648
-    iyr:2011 ecl:brn hgt:59in"
-    }
+    iyr:2011 ecl:brn hgt:59in";
+
     fn parse_input_test_part1() -> Vec<Passport> {
-        parse_input(sample_input_part1())
+        parse_input(SAMPLE_INPUT_PART1)
     }
     #[test]
     fn test_part1() {
         assert_eq!(4, part1(&parse_input_test_part1()))
     }
 
-    fn sample_input_part2_not_valid() -> &'static str {
-        "eyr:1972 cid:100
+    const SAMPLE_INPUT_PART2_NOT_VALID: &str = "eyr:1972 cid:100
       hcl:#18171d ecl:amb hgt:170 pid:186cm iyr:2018 byr:1926
       
       iyr:2019
@@ -444,9 +442,9 @@ mod tests {
       
       hgt:59cm ecl:zzz
       eyr:2038 hcl:74454a iyr:2023
-      pid:3556412378 byr:2007"
-    }
-    fn sample_input_part2_valid() -> &'static str {
+      pid:3556412378 byr:2007";
+
+    const SAMPLE_INPUT_PART2_VALID: &str =
         "pid:087499704 hgt:74in ecl:grn iyr:2012 eyr:2030 byr:1980
     hcl:#623a2f
     
@@ -458,14 +456,13 @@ mod tests {
     pid:545766238 ecl:hzl
     eyr:2022
     
-    iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021 pid:093154719"
-    }
+    iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021 pid:093154719";
 
     fn parse_input_test_part2_not_valid() -> Vec<Passport> {
-        parse_input(sample_input_part2_not_valid())
+        parse_input(SAMPLE_INPUT_PART2_NOT_VALID)
     }
     fn parse_input_test_part2_valid() -> Vec<Passport> {
-        parse_input(sample_input_part2_valid())
+        parse_input(SAMPLE_INPUT_PART2_VALID)
     }
     #[test]
     fn test_part2_not_valid_input() {
