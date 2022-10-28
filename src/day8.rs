@@ -142,7 +142,6 @@ fn execute_boot_code(instructions: &[Instruction]) -> ExecutionReport {
     let mut executed_op_index: HashSet<isize> = HashSet::new();
     let mut op_index = 0;
     let mut terminated = false;
-    println!("Instructions executed {:#?}", instructions);
     while !terminated && !executed_op_index.contains(&op_index) {
         executed_op_index.insert(op_index);
         match instructions.get(op_index as usize) {
@@ -195,9 +194,7 @@ fn fix_instructions(
         result: -1,
         terminated: false,
     };
-    // while !execution_report.terminated || last_replaced_op_index < instructions.len() {
     for (index, instruction) in instructions[last_replaced_op_index..].iter().enumerate() {
-        println!("Instruction under review {:#?} at {}", instruction, index);
         match old_op_code {
             Instruction::Jmp(_) => match instruction {
                 Instruction::Jmp(op_number) => {
@@ -205,7 +202,6 @@ fn fix_instructions(
                         index,
                         &mut last_replaced_op_index,
                         instructions,
-                        &Instruction::Jmp,
                         new_op_code,
                         op_number,
                     );
@@ -221,7 +217,6 @@ fn fix_instructions(
                         index,
                         &mut last_replaced_op_index,
                         instructions,
-                        &Instruction::Nop,
                         new_op_code,
                         op_number,
                     );
@@ -236,7 +231,6 @@ fn fix_instructions(
             }
         }
     }
-    // }
     execution_report
 }
 
@@ -244,7 +238,6 @@ fn try_replace_op_code_and_exec(
     index: usize,
     last_replaced_op_index: &mut usize,
     instructions: &[Instruction],
-    old_op_code: &dyn Fn(isize) -> Instruction,
     new_op_code: &dyn Fn(isize) -> Instruction,
     op_number: &isize,
 ) -> ExecutionReport {
@@ -253,9 +246,6 @@ fn try_replace_op_code_and_exec(
 
     changed_instructions[*last_replaced_op_index] = new_op_code(*op_number);
     let execution_report = execute_boot_code(&changed_instructions);
-    //undo the change
-    //TODO not needed?
-    changed_instructions[*last_replaced_op_index] = old_op_code(*op_number);
     *last_replaced_op_index += 1;
     execution_report
 }
@@ -277,10 +267,6 @@ mod tests {
     fn parse_test_input() -> Vec<Instruction> {
         parse_input(SAMPLE_INPUT_PART1)
     }
-
-    // fn parse_test_input_part2() -> HashMap<String, Option<Vec<(u8, String)>>> {
-    //     parse_input(SAMPLE_INPUT_PART2)
-    // }
 
     #[test]
     fn test_part1() {
