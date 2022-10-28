@@ -189,22 +189,16 @@ fn fix_instructions(
     old_op_code: Instruction,
     new_op_code: &dyn Fn(isize) -> Instruction,
 ) -> ExecutionReport {
-    let mut last_replaced_op_index = 0;
     let mut execution_report = ExecutionReport {
         result: -1,
         terminated: false,
     };
-    for (index, instruction) in instructions[last_replaced_op_index..].iter().enumerate() {
+    for (index, instruction) in instructions.iter().enumerate() {
         match old_op_code {
             Instruction::Jmp(_) => match instruction {
                 Instruction::Jmp(op_number) => {
-                    execution_report = try_replace_op_code_and_exec(
-                        index,
-                        &mut last_replaced_op_index,
-                        instructions,
-                        new_op_code,
-                        op_number,
-                    );
+                    execution_report =
+                        try_replace_op_code_and_exec(index, instructions, new_op_code, op_number);
                     if execution_report.terminated {
                         return execution_report;
                     }
@@ -213,13 +207,8 @@ fn fix_instructions(
             },
             Instruction::Nop(_) => match instruction {
                 Instruction::Nop(op_number) => {
-                    execution_report = try_replace_op_code_and_exec(
-                        index,
-                        &mut last_replaced_op_index,
-                        instructions,
-                        new_op_code,
-                        op_number,
-                    );
+                    execution_report =
+                        try_replace_op_code_and_exec(index, instructions, new_op_code, op_number);
                     if execution_report.terminated {
                         return execution_report;
                     }
@@ -235,19 +224,14 @@ fn fix_instructions(
 }
 
 fn try_replace_op_code_and_exec(
-    index: usize,
-    last_replaced_op_index: &mut usize,
+    replace_at_index: usize,
     instructions: &[Instruction],
     new_op_code: &dyn Fn(isize) -> Instruction,
     op_number: &isize,
 ) -> ExecutionReport {
     let mut changed_instructions = instructions.to_vec();
-    *last_replaced_op_index += index;
-
-    changed_instructions[*last_replaced_op_index] = new_op_code(*op_number);
-    let execution_report = execute_boot_code(&changed_instructions);
-    *last_replaced_op_index += 1;
-    execution_report
+    changed_instructions[replace_at_index] = new_op_code(*op_number);
+    execute_boot_code(&changed_instructions)
 }
 
 #[cfg(test)]
