@@ -143,7 +143,7 @@ enum PassportAttributeValidated {
     BirthYear(u16),
     IssueYear(u16),
     ExpirationYear(u16),
-    Height { value: u16, unit: String },
+    #[allow(dead_code)] Height { value: u16, unit: String },
     HairColor(String),
     EyeColor(String),
     PassportID(u32),
@@ -187,7 +187,7 @@ impl PassportAttributeNotValidated {
     ) -> Result<Vec<PassportAttributeValidated>, ParseError> {
         attributes
             .iter()
-            .map(|attribute| PassportAttributeNotValidated::validate_attribute(attribute))
+            .map(PassportAttributeNotValidated::validate_attribute)
             .collect()
     }
     fn validate_attribute(
@@ -323,12 +323,12 @@ impl Passport {
 
     fn attribute_types_and_count_are_valid(attributes: &[PassportAttributeNotValidated]) -> bool {
         match attributes.len() {
-            7 => Passport::contains_all_seven_attributes(&attributes),
+            7 => Passport::contains_all_seven_attributes(attributes),
             8 => {
                 attributes
                     .iter()
                     .any(|a| matches!(a, PassportAttributeNotValidated::CountryID(_)))
-                    && Passport::contains_all_seven_attributes(&attributes)
+                    && Passport::contains_all_seven_attributes(attributes)
             }
             _ => false,
         }
@@ -368,7 +368,7 @@ fn parse_input(input: &str) -> Vec<Passport> {
         .map(|entry| {
             let attributes = entry
                 .split_whitespace()
-                .map(|a| PassportAttributeNotValidated::new(a))
+                .map(PassportAttributeNotValidated::new)
                 .collect();
             Passport::new(attributes)
         })
