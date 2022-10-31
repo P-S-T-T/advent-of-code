@@ -89,6 +89,63 @@ Find a chain that uses all of your adapters to connect the charging outlet to yo
 the adapters, and your device. What is the number of 1-jolt differences multiplied by the number of 3-jolt differences?
 
 2080
+
+--- Part Two ---
+
+To completely determine whether you have enough adapters, you'll need to figure out how many different ways they can be arranged. Every arrangement needs to connect the
+charging outlet to your device. The previous rules about when adapters can successfully connect still apply.
+
+The first example above (the one that starts with 16, 10, 15) supports the following arrangements:
+(0), 1, 4, 5, 6, 7, 10, 11, 12, 15, 16, 19, (22)
+(0), 1, 4, 5, 6, 7, 10, 12, 15, 16, 19, (22)
+(0), 1, 4, 5, 7, 10, 11, 12, 15, 16, 19, (22)
+(0), 1, 4, 5, 7, 10, 12, 15, 16, 19, (22)
+(0), 1, 4, 6, 7, 10, 11, 12, 15, 16, 19, (22)
+(0), 1, 4, 6, 7, 10, 12, 15, 16, 19, (22)
+(0), 1, 4, 7, 10, 11, 12, 15, 16, 19, (22)
+(0), 1, 4, 7, 10, 12, 15, 16, 19, (22)
+(The charging outlet and your device's built-in adapter are shown in parentheses.) Given the adapters from the first example, the total number of arrangements that connect
+the charging outlet to your device is 8.
+
+The second example above (the one that starts with 28, 33, 18) has many arrangements. Here are a few:
+
+(0), 1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 17, 18, 19, 20, 23, 24, 25, 28, 31,
+32, 33, 34, 35, 38, 39, 42, 45, 46, 47, 48, 49, (52)
+
+(0), 1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 17, 18, 19, 20, 23, 24, 25, 28, 31,
+32, 33, 34, 35, 38, 39, 42, 45, 46, 47, 49, (52)
+
+(0), 1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 17, 18, 19, 20, 23, 24, 25, 28, 31,
+32, 33, 34, 35, 38, 39, 42, 45, 46, 48, 49, (52)
+
+(0), 1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 17, 18, 19, 20, 23, 24, 25, 28, 31,
+32, 33, 34, 35, 38, 39, 42, 45, 46, 49, (52)
+
+(0), 1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 17, 18, 19, 20, 23, 24, 25, 28, 31,
+32, 33, 34, 35, 38, 39, 42, 45, 47, 48, 49, (52)
+
+(0), 3, 4, 7, 10, 11, 14, 17, 20, 23, 25, 28, 31, 34, 35, 38, 39, 42, 45,
+46, 48, 49, (52)
+
+(0), 3, 4, 7, 10, 11, 14, 17, 20, 23, 25, 28, 31, 34, 35, 38, 39, 42, 45,
+46, 49, (52)
+
+(0), 3, 4, 7, 10, 11, 14, 17, 20, 23, 25, 28, 31, 34, 35, 38, 39, 42, 45,
+47, 48, 49, (52)
+
+(0), 3, 4, 7, 10, 11, 14, 17, 20, 23, 25, 28, 31, 34, 35, 38, 39, 42, 45,
+47, 49, (52)
+
+(0), 3, 4, 7, 10, 11, 14, 17, 20, 23, 25, 28, 31, 34, 35, 38, 39, 42, 45,
+48, 49, (52)
+In total, this set of adapters can connect the charging outlet to your device in 19208 distinct arrangements.
+
+You glance back down at your bag and try to remember why you brought so many adapters; there must be more than a trillion valid ways to arrange them! Surely, there must be
+an efficient way to count the arrangements.
+
+What is the total number of distinct ways you can arrange the adapters to connect the charging outlet to your device?
+
+6908379398144
 */
 
 #[derive(Debug, PartialEq)]
@@ -117,7 +174,8 @@ fn part1(input: &[usize]) -> usize {
 
 fn find_jolts(input: &[usize]) -> ResultingVolts {
     let mut sorted_adapters = input.to_vec();
-    sorted_adapters.sort();
+    sorted_adapters.sort_unstable();
+
     let mut last_voltage: usize = 0;
     let mut resulting_voltages = ResultingVolts {
         jolt_1: 0,
@@ -139,16 +197,65 @@ fn find_jolts(input: &[usize]) -> ResultingVolts {
     resulting_voltages
 }
 
-// #[aoc(day10, part2)]
-// fn part2(input: &[isize]) -> isize {
-//     break_code(input, 26)
-// }
+//fn combinations_hardcoded(input: &[usize]) -> usize {
+fn combinations(input: &[usize]) -> usize {
+    let mut sorted_adapters = input.to_vec();
+    sorted_adapters.push(0); //add the outlet
+    sorted_adapters.sort_unstable();
+
+    sorted_adapters
+        .windows(2)
+        .collect::<Vec<_>>()
+        .split(|n| n[1] - n[0] == 3)
+        .inspect(|a| println!("chunks {:?} with a length of {}", a, a.len()))
+        .map(|n| match n.len() {
+            6 => 24,
+            5 => 13,
+            4 => 7,
+            3 => 4,
+            2 => 2,
+            1 => 1,
+            0 => 1,
+            _ => 42, // 7 or more is always 42!
+        })
+        .inspect(|a| println!("{}", a))
+        .product::<usize>()
+}
+
+fn combinations_calced(input: &[usize]) -> usize {
+    let mut sorted_adapters = input.to_vec();
+    sorted_adapters.push(0); //add the outlet
+    sorted_adapters.sort_unstable();
+
+    2_usize.pow(
+        sorted_adapters
+            .windows(3)
+            .inspect(|a| {
+                println!(
+                    "distance {} for {}, {} and {}",
+                    a[2] - a[0],
+                    a[0],
+                    a[1],
+                    a[2]
+                )
+            })
+            .filter(|a| a[2] - a[0] == 2 || a[2] - a[0] == 3)
+            .inspect(|a| println!("triples: {:?}", a))
+            .count()
+            .try_into()
+            .unwrap(),
+    )
+}
+#[aoc(day10, part2)]
+fn part2(input: &[usize]) -> usize {
+    combinations(input)
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    const SAMPLE_INPUT_PART1_1: &str = "16
+    const SAMPLE_INPUT_1: &str = "16
 10
 15
 5
@@ -160,7 +267,7 @@ mod tests {
 12
 4
 ";
-    const SAMPLE_INPUT_PART1_2: &str = "28
+    const SAMPLE_INPUT_2: &str = "28
 33
 18
 42
@@ -201,7 +308,7 @@ mod tests {
                 jolt_2: 0,
                 jolt_3: 5
             },
-            find_jolts(&parse_input(SAMPLE_INPUT_PART1_1))
+            find_jolts(&parse_input(SAMPLE_INPUT_1))
         );
         assert_eq!(
             ResultingVolts {
@@ -209,12 +316,150 @@ mod tests {
                 jolt_2: 0,
                 jolt_3: 10
             },
-            find_jolts(&parse_input(SAMPLE_INPUT_PART1_2))
+            find_jolts(&parse_input(SAMPLE_INPUT_2))
         );
     }
 
-    // #[test]
-    // fn test_part2() {
-    //     assert_eq!(62, break_code(&parse_test_input(), 5))
-    // }
+    // 0000
+    // 0001
+    // 0010
+    // 0011
+
+    // 0100
+    // 0101
+    // 0110
+    // 0111 !
+    // => 7
+    // 1000
+    // 1001
+    // 1010
+    // 1011
+
+    // 1100
+    // 1101
+    // 1110 !
+    // 1111 !
+    // ==> 7+6 = 13
+    // 1 0000
+    // 1 0001
+    // 1 0010
+    // 1 0011
+
+    // 1 0100
+    // 1 0101
+    // 1 0110
+    // 1 0111 !
+
+    // 1 1000
+    // 1 1001
+    // 1 1010
+    // 1 1011
+
+    // 1 1100 !
+    // 1 1101 !
+    // 1 1110 !
+    // 1 1111 !
+    // 13 + 11 = 24
+    // 10 0000
+    // 10 0001
+    // 10 0010
+    // 10 0011
+
+    // 10 0100
+    // 10 0101
+    // 10 0110
+    // 10 0111 !
+
+    // 10 1000
+    // 10 1001
+    // 10 1010
+    // 10 1011
+
+    // 10 1100
+    // 10 1101
+    // 10 1110 !
+    // 10 1111 !
+    // ==> 24 + 11 = 35
+    // 11 0000
+    // 11 0001
+    // 11 0010
+    // 11 0011
+
+    // 11 0100
+    // 11 0101
+    // 11 0110
+    // 11 0111 !
+
+    // 11 1000 !
+    // 11 1001 !
+    // 11 1010 !
+    // 11 1011 !
+
+    // 11 1100 !
+    // 11 1101 !
+    // 11 1110 !
+    // 11 1111 !
+    // ==> 35 + 7 = 42
+
+    #[test]
+    fn test_part2_sample_1() {
+        assert_eq!(8, combinations(&parse_input(SAMPLE_INPUT_1)));
+    }
+
+    #[test]
+    fn test_part2_sample_2() {
+        assert_eq!(19208, combinations(&parse_input(SAMPLE_INPUT_2)));
+    }
+
+    const SAMPLE_INPUT_3: &str = "3
+4
+5
+6
+7
+9
+10
+13
+16
+";
+
+    #[test]
+    fn test_part2_sample_3() {
+        assert_eq!(24, combinations(&parse_input(SAMPLE_INPUT_3)));
+    }
+
+    const SAMPLE_INPUT_4: &str = "3
+4
+6
+7
+10
+11
+13
+16
+19
+";
+
+    #[test]
+    fn test_part2_sample_4() {
+        assert_eq!(8, combinations(&parse_input(SAMPLE_INPUT_4)));
+    }
+
+    const SAMPLE_INPUT_5: &str = "4
+5
+6
+7
+10
+19
+22
+24
+25
+26
+29
+33
+34
+35";
+
+    #[test]
+    fn test_part2_sample_5() {
+        assert_eq!(112, combinations(&parse_input(SAMPLE_INPUT_5)));
+    }
 }
