@@ -222,13 +222,13 @@ fn combinations_hardcoded(input: &[usize]) -> usize {
 }
 
 fn combinations_recursive_o_n(input: &[usize]) -> usize {
-    let mut sorted_adapters = input.to_vec();
+    let mut adapters = input.to_vec();
 
-    match sorted_adapters.len() {
+    match adapters.len() {
         0 | 1 => 1,
         2 => {
             // only if the higher number can be reached from the start (0) there is an alternative path
-            if sorted_adapters[0].abs_diff(sorted_adapters[1]) <= 3 {
+            if adapters[0].abs_diff(adapters[1]) <= 3 {
                 2
             } else {
                 1
@@ -236,7 +236,8 @@ fn combinations_recursive_o_n(input: &[usize]) -> usize {
         }
         _ => {
             // sorted_adapters.push(0); //add the outlet
-            sorted_adapters.sort_unstable();
+            adapters.sort_unstable();
+            let sorted_adapters = adapters;
 
             // println!("adapter sequence: 0-{:?}", sorted_adapters);
 
@@ -259,7 +260,7 @@ fn combinations_recursive_o_n(input: &[usize]) -> usize {
                     pathes_to_adapter += pathes_to_n_3;
                 }
                 // println!("{} ways to adapter {}", pathes_to_adapter, *adapter);
-                //update pathes
+                //update paths
                 n_3 = n_2;
                 n_2 = n_1;
                 n_1 = *adapter;
