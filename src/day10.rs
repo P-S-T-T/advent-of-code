@@ -197,8 +197,7 @@ fn find_jolts(input: &[usize]) -> ResultingVolts {
     resulting_voltages
 }
 
-//fn combinations_hardcoded(input: &[usize]) -> usize {
-fn combinations(input: &[usize]) -> usize {
+fn combinations_hardcoded(input: &[usize]) -> usize {
     let mut sorted_adapters = input.to_vec();
     sorted_adapters.push(0); //add the outlet
     sorted_adapters.sort_unstable();
@@ -216,39 +215,429 @@ fn combinations(input: &[usize]) -> usize {
             2 => 2,
             1 => 1,
             0 => 1,
-            _ => 42, // 7 or more is always 42!
+            _ => panic!("needs extension!"),
         })
         .inspect(|a| println!("{}", a))
         .product::<usize>()
 }
 
-fn combinations_calced(input: &[usize]) -> usize {
+fn combinations_counted(input: &[usize]) -> usize {
     let mut sorted_adapters = input.to_vec();
     sorted_adapters.push(0); //add the outlet
     sorted_adapters.sort_unstable();
-
-    2_usize.pow(
-        sorted_adapters
-            .windows(3)
-            .inspect(|a| {
-                println!(
-                    "distance {} for {}, {} and {}",
-                    a[2] - a[0],
-                    a[0],
-                    a[1],
-                    a[2]
-                )
-            })
-            .filter(|a| a[2] - a[0] == 2 || a[2] - a[0] == 3)
-            .inspect(|a| println!("triples: {:?}", a))
-            .count()
-            .try_into()
-            .unwrap(),
-    )
+    // split the sequence where distance == 3
+    sorted_adapters
+        .windows(2)
+        .collect::<Vec<_>>()
+        .split(|n| n[1] - n[0] == 3)
+        .map(count_pathes)
+        .product()
 }
-#[aoc(day10, part2)]
+
+fn count_pathes(subsequence: &[&[usize]]) -> usize {
+    match subsequence.len() {
+        0 => 1,
+        1 => 1,
+        2 => 2,
+        _ => check_for_alt_path(subsequence)
+            .expect("length is minimum 3, so this error should not be possible!"),
+    }
+}
+
+// [1,2] 1 2 = len 1, alt_path: 0
+// [1,2] [2,3] 1 2 3 = len 2, alt_path: 1
+
+// [1,2] [2,3] [3,4] 1 2 3 4 = len 3, alt_path: 3
+// [1,2] [2,3] [3,4] [4,5] 1 2 3 4 5 = len 4, alt_path: 6
+
+// [1,2] [2,3] [3,4] [4,5] 1 2 3 4 5 = len 4, alt_path: 6
+// [1] [1] [1] [1] 1 2 3 4 5 = len 4, alt_path: 6
+
+// [1] [1] [1 - 1] 1 2 3 x 5 = len 4, alt_path: 6
+// [1] [1 - 1] [1] 1 2 x 4 5 = len 4, alt_path: 6
+// [1] [1 - 1 - 1] 1 2 x x 5 = len 4, alt_path: 6
+// [1 - 1] [1] [1] 1 x 3 4 5 = len 4, alt_path: 6
+// [1 - 1] [1 - 1] 1 x 3 x 5 = len 4, alt_path: 6
+// [1 - 1 - 1] [1] 1 x x 4 5 = len 4, alt_path: 6
+
+// [1,2] [2,3] [3,5] [5,6] 1 2 3 5 6 = len 4, alt_path: 4
+
+// [1,2] [2,3] [3,5] [5,6] 1 2 3 x 6 = len 4, alt_path: 4
+// [1,2] [2,3] [3,5] [5,6] 1 2 x 5 6 = len 4, alt_path: 4
+// [1,2] [2,3] [3,5] [5,6] 1 x 3 5 6 = len 4, alt_path: 4
+// [1,2] [2,3] [3,5] [5,6] 1 x 3 x 6 = len 4, alt_path: 4
+
+// [1] [1] [2] [1] 1 2 3 5 6 = len 4, alt_path: 4
+
+// [1] [1] [2 - 1] 1 2 3 x 6 = len 4, alt_path: 4
+// [1] [1 - 2] [1] 1 2 x 5 6 = len 4, alt_path: 4
+// [1 - 1] [2] [1] 1 x 3 5 6 = len 4, alt_path: 4
+// [1 - 1] [2 - 1] 1 x 3 x 6 = len 4, alt_path: 4
+
+fn check_for_alt_path(subsequence: &[&[usize]]) -> Option<usize> {
+    let mut alt_path = 0;
+    println!("{:?}", subsequence);
+    //convert to distances
+    //[[4, 5], [5, 6], [6, 7]]
+    let distances = subsequence
+        .iter()
+        .map(|tuple| tuple[1] - tuple[0])
+        .collect::<Vec<_>>();
+    let one_sequences = distances
+        .split(|n| *n == 2)
+        .inspect(|a| println!("alt path of {:?}", a))
+        .collect::<Vec<_>>();
+    alt_path += one_sequences.len();
+
+    // let slices = distances
+    //     .windows(3)
+    //     .collect::<Vec<_>>()
+    //     .iter()
+    //     .map(|subsequence| count_pathes_a(subsequence));
+
+    println!("distances: {:?}, alt pathes {}", distances, alt_path);
+    println!("ones: {:?}", one_sequences);
+
+    let one_distanes: usize = one_sequences
+        .iter()
+        // .inspect(|a| println!("one sequences {:?}", a))
+        // .collect::<Vec<_>>();
+        .map(|a| binary_combinations(a))
+        .product();
+
+    alt_path += one_distanes;
+
+    // 1-1-2-1-1 =>2
+    // [1-1][][1-1] =>2
+    //  1-x-3-1-1
+    //  1-1-3-x-1
+    // 1-2-2-1-1 => 1
+    // [1][][][1-1] => 1
+    //  1-2-3-1
+    // 1-1-2-2-1 => 1
+    // [1-1][][][1] => 1
+    //  1-3-2-1
+    // 1-2-2-2-1 => 0
+    // [1][][][][1] => 0
+    //  1-2-2-2-1
+
+    // for (i, tuple) in subsequence.iter().enumerate() {
+    //     if tuple == subsequence.first()? {
+    //         continue;
+    //     }
+    //     (*subsequence[i-1])[0] -
+    //     (*subsequence[i][1]) > 3
+    // }
+    // //        count_pathes(&subsequence[..subsequence.len()]),
+    Some(alt_path)
+}
+
+fn binary_combinations(one_sequence: &[usize]) -> usize {
+    match one_sequence.len() {
+        0 => 0,
+        1 => 0,
+        2 => 3,
+        3 => 7,
+        _ => binary_combinations(&one_sequence[1..]),
+    }
+}
+
+fn is_path_ok(subsequence: &[usize]) -> Option<bool> {
+    if (*subsequence.get(subsequence.len())? - *subsequence.get(subsequence.len())?) > 3 {
+        return Some(false);
+    }
+    Some(true)
+}
+
+// 1-1-1-1-1
+// 1-x-2-x-2
+
+// 1 2 3 4
+// 1 2 x 4
+// 1 x 3 4
+// 1 x x 4 !
+
+// 1 3 4 5
+// 1 3 x 5
+// 1 x 4 5 !
+// 1 3 4 5
+// 1 3 4 5
+// ==> abstand 1 auf beiden seiten ! kann entfernt werden
+// 1 2 5 6
+// 1 x 5 6 !
+// 1 x 4 5 !
+
+//1 2 3 4 5
+//1 x 3 4 5 ok
+//1 2 x 4 5 ok
+//1 2 3 x 5 ok
+//1 x x 4 5 ! ok
+//1 x 3 x 5 ok
+
+// [1,2] 1 2 = len 1, alt_path: 0
+// [1,2] [2,3] 1 2 3 = len 2, alt_path: 1
+
+// [1,2] [2,3] [3,4] 1 2 3 4 = len 3, alt_path: 3
+// [1,2] [2,3] [3,4] [4,5] 1 2 3 4 5 = len 4, alt_path: 6
+
+//1 2 3 4 5 ok
+
+//1 2 3 x 5 ok
+//1 2 x x 5 ok
+//1 x 3 x 5 ok
+
+//1 2 x 4 5 ok
+//1 x x 4 5 ok
+
+//1 x 3 4 5 ok
+
+//1 2 3 4 5 ok
+
+// 0    => 1
+// 0 1  => 1
+// 0 1 2 => 1
+// 0 x 2 => 1+1 = 2
+// 0 1 2 3 => 1
+//     2 3 => 2+1
+// 0 1 x 3 => 2+1
+// 0 1 x 3 => 2+1
+
+fn combinations_recursive_o_n(input: &[usize]) -> usize {
+    let mut sorted_adapters = input.to_vec();
+
+    match sorted_adapters.len() {
+        0 | 1 => 1,
+        2 => {
+            // only if the higher number can be reached from the start (0) there is an alternative path
+            if sorted_adapters[0].abs_diff(sorted_adapters[1]) <= 3 {
+                2
+            } else {
+                1
+            }
+        }
+        _ => {
+            // sorted_adapters.push(0); //add the outlet
+            sorted_adapters.sort_unstable();
+
+            println!("adapter sequence: 0-{:?}", sorted_adapters);
+
+            // set up first three nodes
+            let mut n_1 = sorted_adapters[1];
+            let mut n_2 = sorted_adapters[0];
+            let mut n_3 = 0_usize;
+            let mut pathes_to_n_1 = 2_usize;
+            let mut pathes_to_n_2 = 1_usize;
+            let mut pathes_to_n_3 = 1_usize;
+
+            // find ways to reach the last asapter, going through each adapter
+            let mut pathes_to_adapter = 0_usize;
+            sorted_adapters[2..].iter().for_each(|adapter| {
+                pathes_to_adapter = pathes_to_n_1;
+                if adapter - n_2 <= 3 {
+                    pathes_to_adapter += pathes_to_n_2;
+                }
+                if adapter - n_3 <= 3 {
+                    pathes_to_adapter += pathes_to_n_3;
+                }
+                //update pathes
+                n_3 = n_2;
+                n_2 = n_1;
+                n_1 = *adapter;
+                pathes_to_n_3 = pathes_to_n_2;
+                pathes_to_n_2 = pathes_to_n_1;
+                pathes_to_n_1 = pathes_to_adapter;
+            });
+            pathes_to_adapter
+        }
+    }
+}
+
+fn pathes(adapters: Vec<usize>) -> usize {
+    // calculate for each adapter the pathes to reach it.
+    // for each new node, add the pathes of the nodes which can reach that node to it.
+
+    // 0 -> 1
+    // 0 1 => 1
+    // 0 1 2 =>
+
+    // match adapters.len() {
+    //     0 => 1,
+    //     1 => 1,
+    //     2 =>
+
+    // }
+
+    //     for (index, adapter) in sorted_adapters.iter().enumerate() {
+    //         println!(
+    //             "\nlooking at adapter number {} with value {}",
+    //             index, adapter
+    //         );
+
+    //     	if (index + 2 < sorted_adapters.len() && sorted_adapters[i+2] - sorted_adapters[i] <= 3){
+    //             //			adapters[i+2].paths += adapters[i].paths;
+    //             pathes +=
+    //         }
+    //         if (index + 3 < sorted_adapters.len() && sorted_adapters[i+3] - sorted_adapters[i] <= 3){
+    // //			adapters[i+3].paths += adapters[i].paths;
+    //         }
+    //             //check the next three
+
+    //             println!(
+    //                 "can I skipp to the adapter {}, which has a distance of {}?",
+    //                 skipp_to_adapter,
+    //                 skipp_to_adapter - adapter
+    //             );
+
+    //             if skipp_to_adapter - adapter <= 3 {
+    //                 pathes += match i {
+    //                     2 => 1, // 1 way to skipp over one adaptor
+    //                     3 => 3, // 3 ways to skipp over two adaptors
+    //                     _ => panic!("can't happen"),
+    //                 };
+
+    //                 println!(
+    //                     "yes, can skipp adapter {}! Number of Pathes: {}",
+    //                     sorted_adapters[index + 1],
+    //                     pathes
+    //                 );
+    //             }
+    //         }
+    //     }
+    // pathes
+    0
+}
+
+fn combinations_walked(input: &[usize]) -> usize {
+    let mut pathes = 1; // one path is skipping no adapter
+                        //                         //     let mut sorted_adapters = input.to_vec();
+                        //                         //     sorted_adapters.push(0); //add the outlet
+                        //                         //     sorted_adapters.sort_unstable();
+
+    //     //     println!("adapter sequence: {:?}", sorted_adapters);
+
+    //     //     for (index, adapter) in sorted_adapters.iter().enumerate() {
+    //     //         println!(
+    //     //             "\nlooking at adapter number {} with value {}",
+    //     //             index, adapter
+    //     //         );
+
+    //     //     	if (index + 2 < sorted_adapters.len() && sorted_adapters[i+2] - sorted_adapters[i] <= 3){
+    //     //             //			adapters[i+2].paths += adapters[i].paths;
+    //     //             pathes +=
+    //     //         }
+    //     //         if (index + 3 < sorted_adapters.len() && sorted_adapters[i+3] - sorted_adapters[i] <= 3){
+    //     // //			adapters[i+3].paths += adapters[i].paths;
+    //     //         }
+    //     //             //check the next three
+
+    //     //             println!(
+    //     //                 "can I skipp to the adapter {}, which has a distance of {}?",
+    //     //                 skipp_to_adapter,
+    //     //                 skipp_to_adapter - adapter
+    //     //             );
+
+    //     //             if skipp_to_adapter - adapter <= 3 {
+    //     //                 pathes += match i {
+    //     //                     2 => 1, // 1 way to skipp over one adaptor
+    //     //                     3 => 3, // 3 ways to skipp over two adaptors
+    //     //                     _ => panic!("can't happen"),
+    //     //                 };
+
+    //     //                 println!(
+    //     //                     "yes, can skipp adapter {}! Number of Pathes: {}",
+    //     //                     sorted_adapters[index + 1],
+    //     //                     pathes
+    //     //                 );
+    //     //             }
+    //     //         }
+    //     //     }
+    pathes
+}
+
+// fn combinations_walked(input: &[usize]) -> usize {
+//     let mut pathes = 1; // one path is skipping no adapter
+//     let mut sorted_adapters = input.to_vec();
+//     sorted_adapters.push(0); //add the outlet
+//     sorted_adapters.sort_unstable();
+
+//     println!("adapter sequence: {:?}", sorted_adapters);
+
+//     for (index, adapter) in sorted_adapters.iter().enumerate() {
+//         println!(
+//             "\nlooking at adapter number {} with value {}",
+//             index, adapter
+//         );
+
+//         //check the next three
+//         for i in [3, 2] {
+//             let skipp_to_adapter = match sorted_adapters.get(index + i) {
+//                 Some(adapter) => adapter,
+//                 None => continue, //abort, if end of vector is reached
+//             };
+
+//             println!(
+//                 "can I skipp to the adapter {}, which has a distance of {}?",
+//                 skipp_to_adapter,
+//                 skipp_to_adapter - adapter
+//             );
+
+//             if skipp_to_adapter - adapter <= 3 {
+//                 pathes += match i {
+//                     2 => 1, // 1 way to skipp over one adaptor
+//                     3 => 3, // 3 ways to skipp over two adaptors
+//                     _ => panic!("can't happen"),
+//                 };
+
+//                 println!(
+//                     "yes, can skipp adapter {}! Number of Pathes: {}",
+//                     sorted_adapters[index + 1],
+//                     pathes
+//                 );
+//             }
+//         }
+//     }
+//     pathes
+// }
+
+// [0, 1, 2, 3, 4, 5, 6]
+// [0, x, 2, 3, 4, 5, 6]
+// [0, 1, x, 3, 4, 5, 6]
+// [0, x, x, 3, 4, 5, 6]
+// [0, 1, 2, x, 4, 5, 6]
+// [0, 1, x, x, 4, 5, 6]
+// [0, 1, 2, 3, 4, 5, 6]
+
+// [0, 1, 2, 4, 5, 6]
+// [0, x, 2, 4, 5, 6]
+// [0, 1, x, 4, 5, 6]
+// [0, x, x, 4, 5, 6]
+// [0, 1, 2, 4, x, 6]
+
+// [0, x, 2, 4, x, 6]
+// [0, 1, 2, 4, 5, 6]
+// [0, 1, 2, 4, 5, 6]
+// [0, 1, 2, 4, 5, 6]
+// [0, 1, 2, 4, 5, 6]
+
+// [0, 1, 2, 4, 5, 6]
+// [0, 1, 2, 4, 5, 6]
+// [0, 1, 2, 4, 5, 6]
+
+#[aoc(day10, part2, hardcoded)]
 fn part2(input: &[usize]) -> usize {
-    combinations(input)
+    combinations_hardcoded(input)
+}
+// #[aoc(day10, part2, counted)]
+// fn part2_calced(input: &[usize]) -> usize {
+//     combinations_counted(input)
+// }
+// #[aoc(day10, part2, walked)]
+// fn part2_walked(input: &[usize]) -> usize {
+//     combinations_walked(input)
+// }
+#[aoc(day10, part2, combinations_recursive_o_n)]
+fn part2_combinations_recursive_o_n(input: &[usize]) -> usize {
+    combinations_recursive_o_n(input)
 }
 
 #[cfg(test)]
@@ -319,6 +708,23 @@ mod tests {
             find_jolts(&parse_input(SAMPLE_INPUT_2))
         );
     }
+
+    /*
+
+    */
+
+    // 000
+    // 001 000
+    // 001 001
+    // 001 010
+    // 001 011
+    // 001 110 !
+    // 010
+    // 011
+    // 100
+    // 101
+    // 110
+    // 111 !
 
     // 0000
     // 0001
@@ -403,12 +809,12 @@ mod tests {
 
     #[test]
     fn test_part2_sample_1() {
-        assert_eq!(8, combinations(&parse_input(SAMPLE_INPUT_1)));
+        assert_eq!(8, combinations_hardcoded(&parse_input(SAMPLE_INPUT_1)));
     }
 
     #[test]
     fn test_part2_sample_2() {
-        assert_eq!(19208, combinations(&parse_input(SAMPLE_INPUT_2)));
+        assert_eq!(19208, combinations_hardcoded(&parse_input(SAMPLE_INPUT_2)));
     }
 
     const SAMPLE_INPUT_3: &str = "3
@@ -424,7 +830,7 @@ mod tests {
 
     #[test]
     fn test_part2_sample_3() {
-        assert_eq!(24, combinations(&parse_input(SAMPLE_INPUT_3)));
+        assert_eq!(24, combinations_hardcoded(&parse_input(SAMPLE_INPUT_3)));
     }
 
     const SAMPLE_INPUT_4: &str = "3
@@ -440,7 +846,7 @@ mod tests {
 
     #[test]
     fn test_part2_sample_4() {
-        assert_eq!(8, combinations(&parse_input(SAMPLE_INPUT_4)));
+        assert_eq!(8, combinations_hardcoded(&parse_input(SAMPLE_INPUT_4)));
     }
 
     const SAMPLE_INPUT_5: &str = "4
@@ -448,6 +854,8 @@ mod tests {
 6
 7
 10
+13
+16
 19
 22
 24
@@ -460,6 +868,144 @@ mod tests {
 
     #[test]
     fn test_part2_sample_5() {
-        assert_eq!(112, combinations(&parse_input(SAMPLE_INPUT_5)));
+        assert_eq!(112, combinations_hardcoded(&parse_input(SAMPLE_INPUT_5)));
+    }
+    const SAMPLE_INPUT_1_2_1: &str = "1
+2
+4
+5
+6
+";
+    #[test]
+    fn test_part1_counted_sample_input_1_2_1() {
+        assert_eq!(13, combinations_hardcoded(&parse_input(SAMPLE_INPUT_1_2_1)));
+    }
+
+    const SAMPLE_INPUT_1_2_2: &str = "1
+2
+3
+4
+5
+";
+    #[test]
+    fn test_part1_counted_sample_input_1_2_2() {
+        assert_eq!(13, combinations_hardcoded(&parse_input(SAMPLE_INPUT_1_2_2)));
+    }
+
+    #[test]
+    fn test_part2_walked_sample_1() {
+        assert_eq!(8, combinations_walked(&parse_input(SAMPLE_INPUT_1)));
+    }
+
+    #[test]
+    fn test_part2_walked_sample_2() {
+        assert_eq!(19208, combinations_walked(&parse_input(SAMPLE_INPUT_2)));
+    }
+
+    #[test]
+    fn test_part2_walked_sample_3() {
+        assert_eq!(24, combinations_walked(&parse_input(SAMPLE_INPUT_3)));
+    }
+
+    #[test]
+    fn test_part2_walked_sample_4() {
+        assert_eq!(8, combinations_walked(&parse_input(SAMPLE_INPUT_4)));
+    }
+
+    #[test]
+    fn test_part2_walked_sample_5() {
+        assert_eq!(112, combinations_walked(&parse_input(SAMPLE_INPUT_5)));
+    }
+
+    #[test]
+    fn test_part2_walked_sample_input_1_2_1() {
+        assert_eq!(13, combinations_walked(&parse_input(SAMPLE_INPUT_1_2_1)));
+    }
+
+    #[test]
+    fn test_part2_walked_sample_input_1_2_2() {
+        assert_eq!(13, combinations_walked(&parse_input(SAMPLE_INPUT_1_2_2)));
+    }
+
+    #[test]
+    fn test_part2_counted_sample_1() {
+        assert_eq!(8, combinations_counted(&parse_input(SAMPLE_INPUT_1)));
+    }
+
+    #[test]
+    fn test_part2_counted_sample_2() {
+        assert_eq!(19208, combinations_counted(&parse_input(SAMPLE_INPUT_2)));
+    }
+
+    #[test]
+    fn test_part2_counted_sample_3() {
+        assert_eq!(24, combinations_counted(&parse_input(SAMPLE_INPUT_3)));
+    }
+
+    #[test]
+    fn test_part2_counted_sample_4() {
+        assert_eq!(8, combinations_counted(&parse_input(SAMPLE_INPUT_4)));
+    }
+
+    #[test]
+    fn test_part2_counted_sample_5() {
+        assert_eq!(112, combinations_counted(&parse_input(SAMPLE_INPUT_5)));
+    }
+
+    #[test]
+    fn test_part2_counted_sample_input_1_2_1() {
+        assert_eq!(13, combinations_counted(&parse_input(SAMPLE_INPUT_1_2_1)));
+    }
+
+    #[test]
+    fn test_part2_counted_sample_input_1_2_2() {
+        assert_eq!(13, combinations_counted(&parse_input(SAMPLE_INPUT_1_2_2)));
+    }
+
+    #[test]
+    fn test_part2_recursive_o_n_sample_1() {
+        assert_eq!(8, combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_1)));
+    }
+
+    #[test]
+    fn test_part2_recursive_o_n_sample_2() {
+        assert_eq!(
+            19208,
+            combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_2))
+        );
+    }
+
+    #[test]
+    fn test_part2_recursive_o_n_sample_3() {
+        assert_eq!(24, combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_3)));
+    }
+
+    #[test]
+    fn test_part2_recursive_o_n_sample_4() {
+        assert_eq!(8, combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_4)));
+    }
+
+    #[test]
+    fn test_part2_recursive_o_n_sample_5() {
+        assert_eq!(
+            112,
+            combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_5))
+        );
+    }
+
+    #[test]
+    fn test_part2_recursive_o_n_sample_input_1_2_1() {
+        assert_eq!(
+            13,
+            combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_1_2_1))
+        );
+    }
+
+    #[test]
+    fn test_part2_recursive_o_n_sample_input_1_2_2() {
+        assert_eq!(
+            13,
+            combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_1_2_2))
+        );
     }
 }
