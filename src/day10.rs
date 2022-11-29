@@ -206,7 +206,7 @@ fn combinations_hardcoded(input: &[usize]) -> usize {
         .windows(2)
         .collect::<Vec<_>>()
         .split(|n| n[1] - n[0] == 3)
-        // .inspect(|a| println!("chunks {:?} with a length of {}", a, a.len()))
+        .inspect(|a| println!("chunks {:?} with a length of {}", a, a.len()))
         .map(|n| match n.len() {
             6 => 24,
             5 => 13,
@@ -217,7 +217,7 @@ fn combinations_hardcoded(input: &[usize]) -> usize {
             0 => 1,
             _ => panic!("needs extension!"),
         })
-        // .inspect(|a| println!("{}", a))
+        .inspect(|a| println!("{}", a))
         .product::<usize>()
 }
 
@@ -238,7 +238,7 @@ fn combinations_recursive_o_n(input: &[usize]) -> usize {
             // sorted_adapters.push(0); //add the outlet
             sorted_adapters.sort_unstable();
 
-            // println!("adapter sequence: 0-{:?}", sorted_adapters);
+            println!("adapter sequence: 0-{:?}", sorted_adapters);
 
             // set up first three nodes
             let mut n_1 = sorted_adapters[1];
@@ -258,7 +258,7 @@ fn combinations_recursive_o_n(input: &[usize]) -> usize {
                 if adapter - n_3 <= 3 {
                     pathes_to_adapter += pathes_to_n_3;
                 }
-                // println!("{} ways to adapter {}", pathes_to_adapter, *adapter);
+                println!("{} ways to adapter {}", pathes_to_adapter, *adapter);
                 //update pathes
                 n_3 = n_2;
                 n_2 = n_1;
@@ -447,11 +447,13 @@ mod tests {
 
     #[test]
     fn test_part2_sample_1() {
+        // correct
         assert_eq!(8, combinations_hardcoded(&parse_input(SAMPLE_INPUT_1)));
     }
 
     #[test]
     fn test_part2_sample_2() {
+        // correct
         assert_eq!(19208, combinations_hardcoded(&parse_input(SAMPLE_INPUT_2)));
     }
 
@@ -465,10 +467,34 @@ mod tests {
 13
 16
 ";
+    const SAMPLE_INPUT_3_2: &str = "3
+4
+5
+6
+7
+9
+";
+    const SAMPLE_INPUT_3_1: &str = "3
+4
+5
+6
+7
+";
 
     #[test]
     fn test_part2_sample_3() {
+        // wrong, should be 18
         assert_eq!(24, combinations_hardcoded(&parse_input(SAMPLE_INPUT_3)));
+    }
+    #[test]
+    fn test_part2_sample_3_1() {
+        // correct
+        assert_eq!(7, combinations_hardcoded(&parse_input(SAMPLE_INPUT_3_1)));
+    }
+    #[test]
+    fn test_part2_sample_3_2() {
+        // wrong, should be 18
+        assert_eq!(13, combinations_hardcoded(&parse_input(SAMPLE_INPUT_3_2)));
     }
 
     const SAMPLE_INPUT_4: &str = "3
@@ -484,6 +510,7 @@ mod tests {
 
     #[test]
     fn test_part2_sample_4() {
+        // wrong, should be 6
         assert_eq!(8, combinations_hardcoded(&parse_input(SAMPLE_INPUT_4)));
     }
 
@@ -501,13 +528,14 @@ mod tests {
 25
 26
 29
+32
 33
-34
-35";
+34";
 
     #[test]
     fn test_part2_sample_5() {
-        assert_eq!(112, combinations_hardcoded(&parse_input(SAMPLE_INPUT_5)));
+        // wrong, should be 42
+        assert_eq!(56, combinations_hardcoded(&parse_input(SAMPLE_INPUT_5)));
     }
     const SAMPLE_INPUT_1_2_1: &str = "1
 2
@@ -517,7 +545,7 @@ mod tests {
 ";
     #[test]
     fn test_part1_counted_sample_input_1_2_1() {
-        // it is actually 8, the solution is wrong!
+        // wrong, should be 8
         assert_eq!(13, combinations_hardcoded(&parse_input(SAMPLE_INPUT_1_2_1)));
     }
 
@@ -527,9 +555,20 @@ mod tests {
 4
 5
 ";
+    const SAMPLE_INPUT_6: &str = "2
+4
+6
+8
+";
     #[test]
     fn test_part1_counted_sample_input_1_2_2() {
+        // correct
         assert_eq!(13, combinations_hardcoded(&parse_input(SAMPLE_INPUT_1_2_2)));
+    }
+    #[test]
+    // false! Should be 1!
+    fn test_part1_counted_sample_input_6() {
+        assert_eq!(7, combinations_hardcoded(&parse_input(SAMPLE_INPUT_6)));
     }
 
     #[test]
@@ -546,24 +585,33 @@ mod tests {
     }
 
     #[test]
-    //error?
     fn test_part2_recursive_o_n_sample_3() {
-        assert_eq!(24, combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_3)));
+        assert_eq!(18, combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_3)));
+    }
+    #[test]
+    fn test_part2_recursive_o_n_sample_3_1() {
+        assert_eq!(
+            7,
+            combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_3_1))
+        );
+    }
+    #[test]
+    fn test_part2_recursive_o_n_sample_3_2() {
+        assert_eq!(
+            11,
+            combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_3_2))
+        );
     }
 
     #[test]
-    //error?
     fn test_part2_recursive_o_n_sample_4() {
-        assert_eq!(8, combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_4)));
+        assert_eq!(6, combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_4)));
     }
 
     #[test]
     // error?
     fn test_part2_recursive_o_n_sample_5() {
-        assert_eq!(
-            112,
-            combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_5))
-        );
+        assert_eq!(42, combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_5)));
     }
 
     #[test]
@@ -580,5 +628,10 @@ mod tests {
             13,
             combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_1_2_2))
         );
+    }
+
+    #[test]
+    fn test_part2_recursive_o_n_sample_input_6() {
+        assert_eq!(1, combinations_recursive_o_n(&parse_input(SAMPLE_INPUT_6)));
     }
 }
