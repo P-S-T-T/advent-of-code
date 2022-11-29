@@ -487,7 +487,8 @@ mod tests {
         assert_eq!(8, combinations_hardcoded(&parse_input(SAMPLE_INPUT_4)));
     }
 
-    const SAMPLE_INPUT_5: &str = "4
+    const SAMPLE_INPUT_5: &str = "3
+4
 5
 6
 7
