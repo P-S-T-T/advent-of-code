@@ -206,7 +206,7 @@ fn combinations_hardcoded(input: &[usize]) -> usize {
         .windows(2)
         .collect::<Vec<_>>()
         .split(|n| n[1] - n[0] == 3)
-        .inspect(|a| println!("chunks {:?} with a length of {}", a, a.len()))
+        // .inspect(|a| println!("chunks {:?} with a length of {}", a, a.len()))
         .map(|n| match n.len() {
             6 => 24,
             5 => 13,
@@ -217,7 +217,7 @@ fn combinations_hardcoded(input: &[usize]) -> usize {
             0 => 1,
             _ => panic!("needs extension!"),
         })
-        .inspect(|a| println!("{}", a))
+        // .inspect(|a| println!("{}", a))
         .product::<usize>()
 }
 
@@ -238,7 +238,7 @@ fn combinations_recursive_o_n(input: &[usize]) -> usize {
             // sorted_adapters.push(0); //add the outlet
             sorted_adapters.sort_unstable();
 
-            println!("adapter sequence: 0-{:?}", sorted_adapters);
+            // println!("adapter sequence: 0-{:?}", sorted_adapters);
 
             // set up first three nodes
             let mut n_1 = sorted_adapters[1];
@@ -258,7 +258,7 @@ fn combinations_recursive_o_n(input: &[usize]) -> usize {
                 if adapter - n_3 <= 3 {
                     pathes_to_adapter += pathes_to_n_3;
                 }
-                println!("{} ways to adapter {}", pathes_to_adapter, *adapter);
+                // println!("{} ways to adapter {}", pathes_to_adapter, *adapter);
                 //update pathes
                 n_3 = n_2;
                 n_2 = n_1;
