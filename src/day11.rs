@@ -1,0 +1,252 @@
+/*
+--- Day 11: Seating System ---
+
+Your plane lands with plenty of time to spare. The final leg of your journey is a ferry that goes directly to the tropical island where you can finally start your vacation. As you reach the waiting area to board the ferry, you realize you're so early, nobody else has even arrived yet!
+
+By modeling the process people use to choose (or abandon) their seat in the waiting area, you're pretty sure you can predict the best place to sit. You make a quick map of the seat layout (your puzzle input).
+
+The seat layout fits neatly on a grid. Each position is either floor (.), an empty seat (L), or an occupied seat (#). For example, the initial seat layout might look like this:
+
+L.LL.LL.LL
+LLLLLLL.LL
+L.L.L..L..
+LLLL.LL.LL
+L.LL.LL.LL
+L.LLLLL.LL
+..L.L.....
+LLLLLLLLLL
+L.LLLLLL.L
+L.LLLLL.LL
+Now, you just need to model the people who will be arriving shortly. Fortunately, people are entirely predictable and always follow a simple set of rules. All decisions are based on the number of occupied seats adjacent to a given seat (one of the eight positions immediately up, down, left, right, or diagonal from the seat). The following rules are applied to every seat simultaneously:
+
+If a seat is empty (L) and there are no occupied seats adjacent to it, the seat becomes occupied.
+If a seat is occupied (#) and four or more seats adjacent to it are also occupied, the seat becomes empty.
+Otherwise, the seat's state does not change.
+Floor (.) never changes; seats don't move, and nobody sits on the floor.
+
+After one round of these rules, every seat in the example layout becomes occupied:
+
+#.##.##.##
+#######.##
+#.#.#..#..
+####.##.##
+#.##.##.##
+#.#####.##
+..#.#.....
+##########
+#.######.#
+#.#####.##
+After a second round, the seats with four or more occupied adjacent seats become empty again:
+
+#.LL.L#.##
+#LLLLLL.L#
+L.L.L..L..
+#LLL.LL.L#
+#.LL.LL.LL
+#.LLLL#.##
+..L.L.....
+#LLLLLLLL#
+#.LLLLLL.L
+#.#LLLL.##
+This process continues for three more rounds:
+
+#.##.L#.##
+#L###LL.L#
+L.#.#..#..
+#L##.##.L#
+#.##.LL.LL
+#.###L#.##
+..#.#.....
+#L######L#
+#.LL###L.L
+#.#L###.##
+
+#.#L.L#.##
+#LLL#LL.L#
+L.L.L..#..
+#LLL.##.L#
+#.LL.LL.LL
+#.LL#L#.##
+..L.L.....
+#L#LLLL#L#
+#.LLLLLL.L
+#.#L#L#.##
+
+#.#L.L#.##
+#LLL#LL.L#
+L.#.L..#..
+#L##.##.L#
+#.#L.LL.LL
+#.#L#L#.##
+..L.L.....
+#L#L##L#L#
+#.LLLLLL.L
+#.#L#L#.##
+At this point, something interesting happens: the chaos stabilizes and further applications of these rules cause no seats to change state! Once people stop moving around, you count 37 occupied seats.
+
+Simulate your seating area by applying the seating rules repeatedly until no seats change state. How many seats end up occupied?
+*/
+
+type SeatingArea = Vec<Vec<char>>;
+
+const FLOOR: char = '.';
+const EMPTY_SEAT: char = 'L';
+const OCCUPIED_SEAT: char = '#';
+
+#[aoc_generator(day11)]
+fn parse_input(input: &str) -> SeatingArea {
+    input.lines().map(|e| e.chars().collect()).collect()
+}
+
+#[aoc(day11, part1)]
+fn part1(input: &SeatingArea) -> usize {
+    // todo: can clone be avoided?
+    find_number_of_occupied_seats_in_stable_state(input.clone())
+}
+
+fn find_number_of_occupied_seats_in_stable_state(seating_area: SeatingArea) -> usize {
+    let steady_state = simulate(seating_area);
+    count_seats(steady_state)
+}
+
+fn count_seats(steady_state: Vec<Vec<char>>) -> usize {
+    steady_state.iter().flatten().fold(
+        0_usize,
+        |acc, seat| {
+            if *seat == OCCUPIED_SEAT {
+                acc + 1
+            } else {
+                acc
+            }
+        },
+    )
+}
+
+fn simulate(mut seating_area: SeatingArea) -> SeatingArea {
+    let mut steady_state = false;
+    while !steady_state {
+        let last_state = seating_area.clone();
+
+        // println!();
+        // print!("last state:");
+        // for row in &last_state {
+        //     println!();
+        //     for seat in row {
+        //         print!("{}", seat);
+        //     }
+        // }
+        // println!();
+
+        steady_state = true;
+        for (row_index, row) in last_state.iter().enumerate() {
+            for (seat_index, seat) in row.iter().enumerate() {
+                match *seat {
+                    //Floor (.) never changes; seats don't move, and nobody sits on the floor.
+                    FLOOR => continue,
+                    //If a seat is empty (L) and there are no occupied seats adjacent to it, the seat becomes occupied.
+                    EMPTY_SEAT => {
+                        if !check_left_righ_any_occupied(seat_index, row) &&
+                            // not the first row?
+                            (row_index == 0
+                                || !check_row_any_occupied(seat_index, &last_state[row_index - 1])) &&
+                                // not the lasst row?
+                            (row_index == row.len()-1
+                                || !check_row_any_occupied(seat_index, &last_state[row_index + 1]))
+                        {
+                            //all seats around are empty
+                            steady_state = false;
+                            seating_area[row_index][seat_index] = OCCUPIED_SEAT;
+                        }
+                    }
+                    //If a seat is occupied (#) and four or more seats adjacent to it are also occupied, the seat becomes empty.
+                    OCCUPIED_SEAT => {
+                        let mut occupied_seats_around =
+                            check_left_right_number_occupied(seat_index, row);
+                        if row_index != 0 {
+                            occupied_seats_around +=
+                                check_row_number_occupied(seat_index, &last_state[row_index - 1])
+                        }
+                        if row_index != last_state.len() - 1 {
+                            occupied_seats_around +=
+                                check_row_number_occupied(seat_index, &last_state[row_index + 1])
+                        }
+                        if occupied_seats_around >= 4 {
+                            steady_state = false;
+                            seating_area[row_index][seat_index] = EMPTY_SEAT;
+                        }
+                    }
+                    _ => panic!("unexpected char in puzzle input! '{}'", seat),
+                };
+            }
+        }
+    }
+    seating_area
+}
+
+fn check_left_occupied(index: usize, row: &[char]) -> bool {
+    if index == 0 {
+        return false;
+    }
+    row[index - 1] == OCCUPIED_SEAT
+}
+fn check_right_occupied(index: usize, row: &[char]) -> bool {
+    if index == row.len() - 1 {
+        return false;
+    }
+    row[index + 1] == OCCUPIED_SEAT
+}
+
+fn check_left_righ_any_occupied(index: usize, row: &[char]) -> bool {
+    check_left_occupied(index, row) || check_right_occupied(index, row)
+}
+
+fn check_row_any_occupied(index: usize, row: &[char]) -> bool {
+    row[index] == OCCUPIED_SEAT || check_left_righ_any_occupied(index, row)
+}
+
+fn check_left_right_number_occupied(index: usize, row: &[char]) -> usize {
+    let mut result = 0_usize;
+    if check_left_occupied(index, row) {
+        result += 1;
+    }
+    if check_right_occupied(index, row) {
+        result += 1;
+    }
+    result
+}
+
+fn check_row_number_occupied(index: usize, row: &[char]) -> usize {
+    let mut result = 0_usize;
+    if row[index] == OCCUPIED_SEAT {
+        result += 1;
+    }
+    result + check_left_right_number_occupied(index, row)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const SAMPLE_INPUT_1: &str = "L.LL.LL.LL
+LLLLLLL.LL
+L.L.L..L..
+LLLL.LL.LL
+L.LL.LL.LL
+L.LLLLL.LL
+..L.L.....
+LLLLLLLLLL
+L.LLLLLL.L
+L.LLLLL.LL
+";
+
+    #[test]
+    fn test_part1_samples() {
+        assert_eq!(37, part1(&parse_input(SAMPLE_INPUT_1)));
+    }
+
+    #[test]
+    fn test_part2_sample_1() {
+        // correct
+        // assert_eq!(8, combinations_hardcoded(&parse_input(SAMPLE_INPUT_1)));
+    }
+}
