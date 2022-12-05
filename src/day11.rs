@@ -85,7 +85,11 @@ L.#.L..#..
 At this point, something interesting happens: the chaos stabilizes and further applications of these rules cause no seats to change state! Once people stop moving around, you count 37 occupied seats.
 
 Simulate your seating area by applying the seating rules repeatedly until no seats change state. How many seats end up occupied?
-2254
+
+Your puzzle answer was 2254.
+
+The first half of this puzzle is complete! It provides one gold star: *
+
 --- Part Two ---
 
 As soon as people start to arrive, you realize your mistake. People don't just care about adjacent seats - they care about the first seat they can see in each of those eight directions!
