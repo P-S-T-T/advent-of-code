@@ -84,7 +84,7 @@ L.#.L..#..
 #.#L#L#.##
 At this point, something interesting happens: the chaos stabilizes and further applications of these rules cause no seats to change state! Once people stop moving around, you count 37 occupied seats.
 
-Simulate your seating area by applying the seating rules repeatedly until no seats change state. How many seats end up occupied?
+Simulate_part1 your seating area by applying the seating rules repeatedly until no seats change state. How many seats end up occupied?
 
 Your puzzle answer was 2254.
 
@@ -92,9 +92,10 @@ The first half of this puzzle is complete! It provides one gold star: *
 
 --- Part Two ---
 
-As soon as people start to arrive, you realize your mistake. People don't just care about adjacent seats - they care about the first seat they can see in each of those eight directions!
-
-Now, instead of considering just the eight immediately adjacent seats, consider the first seat in each of those eight directions. For example, the empty seat below would see eight occupied seats:
+As soon as people start to arrive, you realize your mistake. People don't just care about adjacent seats -
+they care about the first seat they can see in each of those eight directions!
+Now, instead of considering just the eight immediately adjacent seats, consider the first seat in each of
+those eight directions. For example, the empty seat below would see eight occupied seats:
 
 .......#.
 ...#.....
@@ -119,7 +120,8 @@ The empty seat below would see no occupied seats:
 ##...##
 #.#.#.#
 .##.##.
-Also, people seem to be more tolerant than you expected: it now takes five or more visible occupied seats for an occupied seat to become empty (rather than four or more from the previous rules). The other rules still apply: empty seats that see no occupied seats become occupied, seats matching no rule don't change, and floor never changes.
+Also, people seem to be more tolerant than you expected: it now takes five or more visible occupied seats for an occupied seat to become empty (rather than four or more
+from the previous rules). The other rules still apply: empty seats that see no occupied seats become occupied, seats matching no rule don't change, and floor never changes.
 
 Given the same starting layout as above, these new rules cause the seating area to shift around as follows:
 
@@ -133,6 +135,7 @@ L.LLLLL.LL
 LLLLLLLLLL
 L.LLLLLL.L
 L.LLLLL.LL
+
 #.##.##.##
 #######.##
 #.#.#..#..
@@ -143,6 +146,7 @@ L.LLLLL.LL
 ##########
 #.######.#
 #.#####.##
+
 #.LL.LL.L#
 #LLLLLL.LL
 L.L.L..L..
@@ -153,6 +157,7 @@ L.LLLLL.LL
 LLLLLLLLL#
 #.LLLLLL.L
 #.LLLLL.L#
+
 #.L#.##.L#
 #L#####.LL
 L.#.#..#..
@@ -163,6 +168,7 @@ L.#.#..#..
 LLL####LL#
 #.L#####.L
 #.L####.L#
+
 #.L#.L#.L#
 #LLLLLL.LL
 L.L.L..#..
@@ -173,6 +179,7 @@ L.LL.LL.L#
 LLLLLLLLL#
 #.LLLLL#.L
 #.L#LL#.L#
+
 #.L#.L#.L#
 #LLLLLL.LL
 L.L.L..#..
@@ -183,6 +190,7 @@ L.L#.#L.L#
 LLL###LLL#
 #.LLLLL#.L
 #.L#LL#.L#
+
 #.L#.L#.L#
 #LLLLLL.LL
 L.L.L..#..
@@ -193,6 +201,7 @@ L.L#.LL.L#
 LLL###LLL#
 #.LLLLL#.L
 #.L#LL#.L#
+
 Again, at this point, people stop shifting around and the seating area reaches equilibrium. Once this occurs, you count 26 occupied seats.
 
 Given the new visibility method and the rule change for occupied seats becoming empty, once equilibrium is reached, how many seats end up occupied?
@@ -204,6 +213,32 @@ const FLOOR: char = '.';
 const EMPTY_SEAT: char = 'L';
 const OCCUPIED_SEAT: char = '#';
 
+enum Direction {
+    West,
+    SouthWest,
+    South,
+    ShouthEast,
+    East,
+    NorthEast,
+    North,
+    NorthWest,
+}
+
+impl Direction {
+    fn value(&self) -> (i8, i8) {
+        match &self {
+            West => (1, 0),
+            SouthWest => (1, 1),
+            South => (0, 1),
+            ShouthEast => (-1, 1),
+            East => (-1, 0),
+            NorthEast => (-1, -1),
+            North => (0, -1),
+            NorthWest => (1, -1),
+        }
+    }
+}
+
 #[aoc_generator(day11)]
 fn parse_input(input: &str) -> SeatingArea {
     input.lines().map(|e| e.chars().collect()).collect()
@@ -211,12 +246,13 @@ fn parse_input(input: &str) -> SeatingArea {
 
 #[aoc(day11, part1)]
 fn part1(input: &SeatingArea) -> usize {
-    // todo: can clone be avoided?
-    find_number_of_occupied_seats_in_stable_state(input.clone())
+    let steady_state = simulate_part1(input.clone());
+    count_seats(steady_state)
 }
 
-fn find_number_of_occupied_seats_in_stable_state(seating_area: SeatingArea) -> usize {
-    let steady_state = simulate(seating_area);
+#[aoc(day11, part2)]
+fn part2(input: &SeatingArea) -> usize {
+    let steady_state = simulate_part2(input.clone());
     count_seats(steady_state)
 }
 
@@ -233,7 +269,7 @@ fn count_seats(steady_state: Vec<Vec<char>>) -> usize {
     )
 }
 
-fn simulate(mut seating_area: SeatingArea) -> SeatingArea {
+fn simulate_part1(mut seating_area: SeatingArea) -> SeatingArea {
     let mut steady_state = false;
     while !steady_state {
         let last_state = seating_area.clone();
@@ -292,6 +328,239 @@ fn simulate(mut seating_area: SeatingArea) -> SeatingArea {
         }
     }
     seating_area
+}
+
+fn simulate_part2(mut seating_area: SeatingArea) -> SeatingArea {
+    let mut steady_state = false;
+    while !steady_state {
+        let last_state = seating_area.clone();
+
+        println!();
+        print!("last state:");
+        for row in &last_state {
+            println!();
+            for seat in row {
+                print!("{}", seat);
+            }
+        }
+        println!();
+
+        steady_state = true;
+        for (row_index, row) in last_state.iter().enumerate() {
+            for (seat_index, seat) in row.iter().enumerate() {
+                match *seat {
+                    //Floor (.) never changes; seats don't move, and nobody sits on the floor.
+                    FLOOR => continue,
+                    //If a seat is empty (L) and there are no occupied seats in the row in all eight directions, the seat becomes occupied.
+                    EMPTY_SEAT => {
+                        if !neighboring_seat_occupied(
+                            seat_index,
+                            row_index,
+                            Direction::West,
+                            &last_state,
+                        ) && !neighboring_seat_occupied(
+                            seat_index,
+                            row_index,
+                            Direction::SouthWest,
+                            &last_state,
+                        ) && !neighboring_seat_occupied(
+                            seat_index,
+                            row_index,
+                            Direction::South,
+                            &last_state,
+                        ) && !neighboring_seat_occupied(
+                            seat_index,
+                            row_index,
+                            Direction::ShouthEast,
+                            &last_state,
+                        ) && !neighboring_seat_occupied(
+                            seat_index,
+                            row_index,
+                            Direction::East,
+                            &last_state,
+                        ) && !neighboring_seat_occupied(
+                            seat_index,
+                            row_index,
+                            Direction::NorthEast,
+                            &last_state,
+                        ) && !neighboring_seat_occupied(
+                            seat_index,
+                            row_index,
+                            Direction::North,
+                            &last_state,
+                        ) && !neighboring_seat_occupied(
+                            seat_index,
+                            row_index,
+                            Direction::NorthWest,
+                            &last_state,
+                        ) {
+                            //all seats around are empty
+                            steady_state = false;
+                            seating_area[row_index][seat_index] = OCCUPIED_SEAT;
+                        }
+                    }
+                    //If a seat is occupied (#) and four or more seats adjacent to it are also occupied, the seat becomes empty.
+                    OCCUPIED_SEAT => {
+                        let mut occupied_seats_around = 0_usize;
+                        if neighboring_seat_occupied(
+                            seat_index,
+                            row_index,
+                            Direction::West,
+                            &last_state,
+                        ) {
+                            occupied_seats_around += 1;
+                        };
+                        if neighboring_seat_occupied(
+                            seat_index,
+                            row_index,
+                            Direction::SouthWest,
+                            &last_state,
+                        ) {
+                            occupied_seats_around += 1;
+                        };
+                        if neighboring_seat_occupied(
+                            seat_index,
+                            row_index,
+                            Direction::South,
+                            &last_state,
+                        ) {
+                            occupied_seats_around += 1;
+                        };
+                        if neighboring_seat_occupied(
+                            seat_index,
+                            row_index,
+                            Direction::ShouthEast,
+                            &last_state,
+                        ) {
+                            occupied_seats_around += 1;
+                        };
+                        if neighboring_seat_occupied(
+                            seat_index,
+                            row_index,
+                            Direction::East,
+                            &last_state,
+                        ) {
+                            occupied_seats_around += 1;
+                        };
+                        if neighboring_seat_occupied(
+                            seat_index,
+                            row_index,
+                            Direction::NorthEast,
+                            &last_state,
+                        ) {
+                            occupied_seats_around += 1;
+                        };
+                        if neighboring_seat_occupied(
+                            seat_index,
+                            row_index,
+                            Direction::North,
+                            &last_state,
+                        ) {
+                            occupied_seats_around += 1;
+                        };
+                        if neighboring_seat_occupied(
+                            seat_index,
+                            row_index,
+                            Direction::NorthWest,
+                            &last_state,
+                        ) {
+                            occupied_seats_around += 1;
+                        };
+                        if occupied_seats_around >= 5 {
+                            steady_state = false;
+                            seating_area[row_index][seat_index] = EMPTY_SEAT;
+                        };
+                    }
+                    _ => panic!("unexpected char in puzzle input! '{}'", seat),
+                };
+            }
+        }
+    }
+    seating_area
+}
+
+fn neighboring_seat_occupied(
+    seat_index: usize,
+    row_index: usize,
+    direction: Direction,
+    seating_area: &SeatingArea,
+) -> bool {
+    match direction {
+        Direction::West => {
+            if seat_index == seating_area[row_index].len() - 1 {
+                false
+            } else if seating_area[row_index][seat_index + 1] == OCCUPIED_SEAT {
+                true
+            } else {
+                neighboring_seat_occupied(seat_index + 1, row_index, direction, seating_area)
+            }
+        }
+        Direction::South => {
+            if row_index == seating_area.len() - 1 {
+                false
+            } else if seating_area[row_index + 1][seat_index] == OCCUPIED_SEAT {
+                true
+            } else {
+                neighboring_seat_occupied(seat_index, row_index + 1, direction, seating_area)
+            }
+        }
+        Direction::East => {
+            if seat_index == 0 {
+                false
+            } else if seating_area[row_index][seat_index - 1] == OCCUPIED_SEAT {
+                true
+            } else {
+                neighboring_seat_occupied(seat_index - 1, row_index, direction, seating_area)
+            }
+        }
+        Direction::North => {
+            if row_index == 0 {
+                false
+            } else if seating_area[row_index - 1][seat_index] == OCCUPIED_SEAT {
+                true
+            } else {
+                neighboring_seat_occupied(seat_index, row_index - 1, direction, seating_area)
+            }
+        }
+        Direction::SouthWest => {
+            if seat_index == seating_area[row_index].len() - 1
+                || row_index == seating_area.len() - 1
+            {
+                false
+            } else if seating_area[row_index + 1][seat_index + 1] == OCCUPIED_SEAT {
+                true
+            } else {
+                neighboring_seat_occupied(seat_index + 1, row_index + 1, direction, seating_area)
+            }
+        }
+        Direction::NorthWest => {
+            if seat_index == seating_area[row_index].len() - 1 || row_index == 0 {
+                false
+            } else if seating_area[row_index - 1][seat_index + 1] == OCCUPIED_SEAT {
+                true
+            } else {
+                neighboring_seat_occupied(seat_index + 1, row_index - 1, direction, seating_area)
+            }
+        }
+        Direction::ShouthEast => {
+            if seat_index == 0 || row_index == seating_area.len() - 1 {
+                false
+            } else if seating_area[row_index + 1][seat_index - 1] == OCCUPIED_SEAT {
+                true
+            } else {
+                neighboring_seat_occupied(seat_index - 1, row_index + 1, direction, seating_area)
+            }
+        }
+        Direction::NorthEast => {
+            if seat_index == 0 || row_index == 0 {
+                false
+            } else if seating_area[row_index - 1][seat_index - 1] == OCCUPIED_SEAT {
+                true
+            } else {
+                neighboring_seat_occupied(seat_index - 1, row_index - 1, direction, seating_area)
+            }
+        }
+    }
 }
 
 fn check_left_occupied(seat_index: usize, row: &[char]) -> bool {
@@ -357,7 +626,6 @@ L.LLLLL.LL
 
     #[test]
     fn test_part2_sample_1() {
-        // correct
-        // assert_eq!(8, combinations_hardcoded(&parse_input(SAMPLE_INPUT_1)));
+        assert_eq!(26, part2(&parse_input(SAMPLE_INPUT_1)));
     }
 }
