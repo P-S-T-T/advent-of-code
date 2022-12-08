@@ -205,6 +205,7 @@ LLL###LLL#
 Again, at this point, people stop shifting around and the seating area reaches equilibrium. Once this occurs, you count 26 occupied seats.
 
 Given the new visibility method and the rule change for occupied seats becoming empty, once equilibrium is reached, how many seats end up occupied?
+2004
 */
 
 type SeatingArea = Vec<Vec<char>>;
@@ -222,21 +223,6 @@ enum Direction {
     NorthEast,
     North,
     NorthWest,
-}
-
-impl Direction {
-    fn value(&self) -> (i8, i8) {
-        match &self {
-            West => (1, 0),
-            SouthWest => (1, 1),
-            South => (0, 1),
-            ShouthEast => (-1, 1),
-            East => (-1, 0),
-            NorthEast => (-1, -1),
-            North => (0, -1),
-            NorthWest => (1, -1),
-        }
-    }
 }
 
 #[aoc_generator(day11)]
@@ -335,15 +321,15 @@ fn simulate_part2(mut seating_area: SeatingArea) -> SeatingArea {
     while !steady_state {
         let last_state = seating_area.clone();
 
-        println!();
-        print!("last state:");
-        for row in &last_state {
-            println!();
-            for seat in row {
-                print!("{}", seat);
-            }
-        }
-        println!();
+        // println!();
+        // print!("last state:");
+        // for row in &last_state {
+        //     println!();
+        //     for seat in row {
+        //         print!("{}", seat);
+        //     }
+        // }
+        // println!();
 
         steady_state = true;
         for (row_index, row) in last_state.iter().enumerate() {
@@ -489,37 +475,69 @@ fn neighboring_seat_occupied(
         Direction::West => {
             if seat_index == seating_area[row_index].len() - 1 {
                 false
-            } else if seating_area[row_index][seat_index + 1] == OCCUPIED_SEAT {
-                true
             } else {
-                neighboring_seat_occupied(seat_index + 1, row_index, direction, seating_area)
+                match seating_area[row_index][seat_index + 1] {
+                    OCCUPIED_SEAT => true,
+                    EMPTY_SEAT => false,
+                    FLOOR => neighboring_seat_occupied(
+                        seat_index + 1,
+                        row_index,
+                        direction,
+                        seating_area,
+                    ),
+                    _ => panic!("Map contains wrong symbol"),
+                }
             }
         }
         Direction::South => {
             if row_index == seating_area.len() - 1 {
                 false
-            } else if seating_area[row_index + 1][seat_index] == OCCUPIED_SEAT {
-                true
             } else {
-                neighboring_seat_occupied(seat_index, row_index + 1, direction, seating_area)
+                match seating_area[row_index + 1][seat_index] {
+                    OCCUPIED_SEAT => true,
+                    EMPTY_SEAT => false,
+                    FLOOR => neighboring_seat_occupied(
+                        seat_index,
+                        row_index + 1,
+                        direction,
+                        seating_area,
+                    ),
+                    _ => panic!("Map contains wrong symbol"),
+                }
             }
         }
         Direction::East => {
             if seat_index == 0 {
                 false
-            } else if seating_area[row_index][seat_index - 1] == OCCUPIED_SEAT {
-                true
             } else {
-                neighboring_seat_occupied(seat_index - 1, row_index, direction, seating_area)
+                match seating_area[row_index][seat_index - 1] {
+                    OCCUPIED_SEAT => true,
+                    EMPTY_SEAT => false,
+                    FLOOR => neighboring_seat_occupied(
+                        seat_index - 1,
+                        row_index,
+                        direction,
+                        seating_area,
+                    ),
+                    _ => panic!("Map contains wrong symbol"),
+                }
             }
         }
         Direction::North => {
             if row_index == 0 {
                 false
-            } else if seating_area[row_index - 1][seat_index] == OCCUPIED_SEAT {
-                true
             } else {
-                neighboring_seat_occupied(seat_index, row_index - 1, direction, seating_area)
+                match seating_area[row_index - 1][seat_index] {
+                    OCCUPIED_SEAT => true,
+                    EMPTY_SEAT => false,
+                    FLOOR => neighboring_seat_occupied(
+                        seat_index,
+                        row_index - 1,
+                        direction,
+                        seating_area,
+                    ),
+                    _ => panic!("Map contains wrong symbol"),
+                }
             }
         }
         Direction::SouthWest => {
@@ -527,37 +545,69 @@ fn neighboring_seat_occupied(
                 || row_index == seating_area.len() - 1
             {
                 false
-            } else if seating_area[row_index + 1][seat_index + 1] == OCCUPIED_SEAT {
-                true
             } else {
-                neighboring_seat_occupied(seat_index + 1, row_index + 1, direction, seating_area)
+                match seating_area[row_index + 1][seat_index + 1] {
+                    OCCUPIED_SEAT => true,
+                    EMPTY_SEAT => false,
+                    FLOOR => neighboring_seat_occupied(
+                        seat_index + 1,
+                        row_index + 1,
+                        direction,
+                        seating_area,
+                    ),
+                    _ => panic!("Map contains wrong symbol"),
+                }
             }
         }
         Direction::NorthWest => {
             if seat_index == seating_area[row_index].len() - 1 || row_index == 0 {
                 false
-            } else if seating_area[row_index - 1][seat_index + 1] == OCCUPIED_SEAT {
-                true
             } else {
-                neighboring_seat_occupied(seat_index + 1, row_index - 1, direction, seating_area)
+                match seating_area[row_index - 1][seat_index + 1] {
+                    OCCUPIED_SEAT => true,
+                    EMPTY_SEAT => false,
+                    FLOOR => neighboring_seat_occupied(
+                        seat_index + 1,
+                        row_index - 1,
+                        direction,
+                        seating_area,
+                    ),
+                    _ => panic!("Map contains wrong symbol"),
+                }
             }
         }
         Direction::ShouthEast => {
             if seat_index == 0 || row_index == seating_area.len() - 1 {
                 false
-            } else if seating_area[row_index + 1][seat_index - 1] == OCCUPIED_SEAT {
-                true
             } else {
-                neighboring_seat_occupied(seat_index - 1, row_index + 1, direction, seating_area)
+                match seating_area[row_index + 1][seat_index - 1] {
+                    OCCUPIED_SEAT => true,
+                    EMPTY_SEAT => false,
+                    FLOOR => neighboring_seat_occupied(
+                        seat_index - 1,
+                        row_index + 1,
+                        direction,
+                        seating_area,
+                    ),
+                    _ => panic!("Map contains wrong symbol"),
+                }
             }
         }
         Direction::NorthEast => {
             if seat_index == 0 || row_index == 0 {
                 false
-            } else if seating_area[row_index - 1][seat_index - 1] == OCCUPIED_SEAT {
-                true
             } else {
-                neighboring_seat_occupied(seat_index - 1, row_index - 1, direction, seating_area)
+                match seating_area[row_index - 1][seat_index - 1] {
+                    OCCUPIED_SEAT => true,
+                    EMPTY_SEAT => false,
+                    FLOOR => neighboring_seat_occupied(
+                        seat_index - 1,
+                        row_index - 1,
+                        direction,
+                        seating_area,
+                    ),
+                    _ => panic!("Map contains wrong symbol"),
+                }
             }
         }
     }
