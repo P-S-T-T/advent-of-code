@@ -36,13 +36,11 @@ starting position is 17 + 8 = 25.
 Figure out where the navigation instructions lead. What is the Manhattan distance between that location and the ship's starting position?
 */
 
-use std::thread::panicking;
-
 #[derive(Clone)]
 enum Direction {
-    West = 0,
+    East = 0,
     South = 1,
-    East = 2,
+    West = 2,
     North = 3,
 }
 enum Instruction {
@@ -53,28 +51,30 @@ enum Instruction {
 }
 
 impl Direction {
-    fn turn(self, degrees: &isize) -> Self {
+    fn turn(&self, degrees: &isize) -> Self {
         if degrees % 90 != 0 {
             panic!("Angle not 90 deg! {}", degrees)
         };
         let ticks = degrees / 90;
         let turns = ticks % 4;
 
-        let direction = (self as isize + turns) % 4;
+        let direction = (*self as isize + turns) % 4;
 
         match direction {
             0 => Self::West,
             1 => Self::South,
             2 => Self::East,
             3 => Self::North,
+            _ => panic!("impossible!"),
         }
     }
 }
 
 impl Instruction {
     fn new(instruction: &str) -> Self {
-        let direction = &instruction[0..0];
+        let direction = &instruction[0..1];
         let units = instruction[1..].parse().unwrap();
+
         match direction {
             "N" => Self::Move(Direction::North, units),
             "W" => Self::Move(Direction::West, units),
@@ -101,53 +101,50 @@ fn parse_input(input: &str) -> Vec<Instruction> {
 }
 
 #[aoc(day12, part1)]
-fn part1(input: &Vec<Instruction>) -> usize {
+fn part1(input: &[Instruction]) -> isize {
     let initial_position = Position {
         north: 0,
         east: 0,
         facing: Direction::East,
     };
     let position = execute_instructions(&initial_position, input);
-    calculate_manhattan_distance(&initial_position, &position)
+    calculate_manhattan_distance(&position)
 }
 
-fn execute_instructions(position: &Position, instructions: &Vec<Instruction>) -> Position {
+fn execute_instructions(position: &Position, instructions: &[Instruction]) -> Position {
     let mut current_position = position.clone();
-    let mut current_instruction;
 
     for instruction in instructions {
         if let Instruction::Forward(units) = instruction {
-            current_instruction = Instruction::Move(current_position.facing.clone(), *units);
+            execute_instruction(
+                &Instruction::Move(current_position.facing.clone(), *units),
+                &mut current_position,
+            )
         } else {
-            current_instruction = *instruction;
-        }
-
-        match current_instruction {
-            Instruction::Move(direction, units) => match direction {
-                Direction::West => current_position.east -= units,
-                Direction::South => current_position.north -= units,
-                Direction::East => current_position.east += units,
-                Direction::North => current_position.north += units,
-            },
-            Instruction::TurnLeft(degrees) => {
-                current_position.facing = current_position.facing.turn(&(-degrees))
-            }
-            Instruction::TurnRight(degrees) => {
-                current_position.facing = current_position.facing.turn(&degrees)
-            }
-            Instruction::Forward(_) => {
-                panic!("Forward should have been handled in the if-let statement before!!")
-            }
+            execute_instruction(instruction, &mut current_position);
         }
     }
     current_position
 }
 
-fn calculate_manhattan_distance(
-    source_position: &Position,
-    destination_position: &Position,
-) -> usize {
-    todo!()
+fn execute_instruction(instruction: &Instruction, position: &mut Position) {
+    match instruction {
+        Instruction::Move(direction, units) => match direction {
+            Direction::West => position.east -= *units,
+            Direction::South => position.north -= *units,
+            Direction::East => position.east += *units,
+            Direction::North => position.north += *units,
+        },
+        Instruction::TurnLeft(degrees) => position.facing = position.facing.turn(&(-*degrees)),
+        Instruction::TurnRight(degrees) => position.facing = position.facing.turn(degrees),
+        Instruction::Forward(_) => {
+            panic!("Forward should have been handled in the if-let statement before!!")
+        }
+    }
+}
+
+fn calculate_manhattan_distance(position: &Position) -> isize {
+    position.east.abs() + position.north.abs()
 }
 
 // #[aoc(day12, part2)]
