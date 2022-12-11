@@ -59,8 +59,7 @@ That's the right answer! You are one gold star closer to saving your vacation.
 // use crate::parse_error::ParseError;
 use std::cmp;
 
-#[aoc_generator(day5)]
-fn parse_input(input: &str) -> Vec<String> {
+pub fn parse_input(input: &str) -> Vec<String> {
     input.lines().map(|str| str.trim().to_string()).collect()
 }
 
@@ -109,15 +108,13 @@ fn bin_convert_direct(code_sequence: &str) -> u8 {
     u8::from_str_radix(&bin, 2).unwrap()
 }
 
-#[aoc(day5, part1)]
-fn part1(boarding_passes: &[String]) -> u32 {
+pub fn part1(boarding_passes: &[String]) -> u32 {
     boarding_passes.iter().fold(0, |highest, boarding_code| {
         cmp::max(highest, decode_boarding_pass(boarding_code))
     })
 }
 
-#[aoc(day5, part2, iterative)]
-fn part2(boarding_passes: &[String]) -> u32 {
+pub fn part2(boarding_passes: &[String]) -> u32 {
     let mut seat_numbers = boarding_passes
         .iter()
         .map(|boarding_code| decode_boarding_pass(boarding_code))
@@ -143,8 +140,7 @@ fn part2(boarding_passes: &[String]) -> u32 {
     found_seat
 }
 
-#[aoc(day5, part2, functional)]
-fn part2_functional(boarding_passes: &[String]) -> u32 {
+pub fn part2_functional(boarding_passes: &[String]) -> u32 {
     let mut seat_numbers = boarding_passes
         .iter()
         .map(|boarding_code| decode_boarding_pass(boarding_code))

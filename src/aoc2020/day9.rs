@@ -85,8 +85,7 @@ What is the encryption weakness in your XMAS-encrypted list of numbers?
 3012420
 */
 
-#[aoc_generator(day9)]
-fn parse_input(input: &str) -> Vec<isize> {
+pub fn parse_input(input: &str) -> Vec<isize> {
     input
         .lines()
         .map(|e| {
@@ -96,8 +95,7 @@ fn parse_input(input: &str) -> Vec<isize> {
         .collect()
 }
 
-#[aoc(day9, part1)]
-fn part1(input: &[isize]) -> isize {
+pub fn part1(input: &[isize]) -> isize {
     find_weakness(input, 26)
 }
 
@@ -129,8 +127,7 @@ fn find_weakness(input: &[isize], prelude_length: usize) -> isize {
     panic!("no weakness found!");
 }
 
-#[aoc(day9, part2)]
-fn part2(input: &[isize]) -> isize {
+pub fn part2(input: &[isize]) -> isize {
     break_code(input, 26)
 }
 fn break_code(input: &[isize], prelude_length: usize) -> isize {

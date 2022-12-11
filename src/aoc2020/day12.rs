@@ -71,13 +71,13 @@ Figure out where the navigation instructions actually lead. What is the Manhatta
 */
 
 #[derive(Clone)]
-enum Direction {
+pub enum Direction {
     East = 0,
     South = 1,
     West = 2,
     North = 3,
 }
-enum Instruction {
+pub enum Instruction {
     Move(Direction, isize),
     TurnLeft(isize),
     TurnRight(isize),
@@ -129,13 +129,11 @@ struct Position {
     facing: Direction,
 }
 
-#[aoc_generator(day12)]
-fn parse_input(input: &str) -> Vec<Instruction> {
+pub fn parse_input(input: &str) -> Vec<Instruction> {
     input.lines().map(Instruction::new).collect()
 }
 
-#[aoc(day12, part1)]
-fn part1(input: &[Instruction]) -> isize {
+pub fn part1(input: &[Instruction]) -> isize {
     let initial_position = Position {
         north: 0,
         east: 0,
@@ -181,8 +179,7 @@ fn calculate_manhattan_distance(position: &Position) -> isize {
     position.east.abs() + position.north.abs()
 }
 
-#[aoc(day12, part2)]
-fn part2(input: &[Instruction]) -> isize {
+pub fn part2(input: &[Instruction]) -> isize {
     let mut waypoint_position = Position {
         north: 1,
         east: 10,

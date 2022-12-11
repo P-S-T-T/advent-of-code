@@ -89,8 +89,7 @@ use std::collections::{HashMap, HashSet};
 // use crate::parse_error::ParseError;
 use regex::Regex;
 
-#[aoc_generator(day6)]
-fn parse_input(input: &str) -> Vec<Vec<String>> {
+pub fn parse_input(input: &str) -> Vec<Vec<String>> {
     let re = Regex::new(r"\n\s*\n").unwrap();
     let group = re.split(input);
 
@@ -99,8 +98,7 @@ fn parse_input(input: &str) -> Vec<Vec<String>> {
         .collect()
 }
 
-#[aoc(day6, part1)]
-fn part1(grouped_answers: &[Vec<String>]) -> u32 {
+pub fn part1(grouped_answers: &[Vec<String>]) -> u32 {
     grouped_answers.iter().fold(0, |sum, answers| {
         sum + count_yes_answers_from_anyone(answers)
     })
@@ -114,8 +112,7 @@ fn count_yes_answers_from_anyone(answers: &[String]) -> u32 {
     unique_answers.len() as u32
 }
 
-#[aoc(day6, part2)]
-fn part2(grouped_answers: &[Vec<String>]) -> u32 {
+pub fn part2(grouped_answers: &[Vec<String>]) -> u32 {
     grouped_answers.iter().fold(0, |sum, answers| {
         sum + count_yes_answers_from_everyone(answers)
     })

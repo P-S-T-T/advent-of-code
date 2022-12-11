@@ -225,19 +225,16 @@ enum Direction {
     NorthWest,
 }
 
-#[aoc_generator(day11)]
-fn parse_input(input: &str) -> SeatingArea {
+pub fn parse_input(input: &str) -> SeatingArea {
     input.lines().map(|e| e.chars().collect()).collect()
 }
 
-#[aoc(day11, part1)]
-fn part1(input: &SeatingArea) -> usize {
+pub fn part1(input: &SeatingArea) -> usize {
     let steady_state = simulate_part1(input.clone());
     count_seats(steady_state)
 }
 
-#[aoc(day11, part2)]
-fn part2(input: &SeatingArea) -> usize {
+pub fn part2(input: &SeatingArea) -> usize {
     let steady_state = simulate_part2(input.clone());
     count_seats(steady_state)
 }

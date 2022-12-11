@@ -71,8 +71,7 @@ use std::collections::HashMap;
 
 use regex::Regex;
 
-#[aoc_generator(day7)]
-fn parse_input(input: &str) -> HashMap<String, Option<Vec<(u8, String)>>> {
+pub fn parse_input(input: &str) -> HashMap<String, Option<Vec<(u8, String)>>> {
     let re = Regex::new(r"(.*) bags contain (.*)+").unwrap();
     let mut result = HashMap::new();
 
@@ -115,8 +114,7 @@ fn parse_input(input: &str) -> HashMap<String, Option<Vec<(u8, String)>>> {
     result
 }
 
-#[aoc(day7, part1)]
-fn part1(bags: &HashMap<String, Option<Vec<(u8, String)>>>) -> u32 {
+pub fn part1(bags: &HashMap<String, Option<Vec<(u8, String)>>>) -> u32 {
     bags.keys()
         .filter(|bag| contains_shiny_gold_bag(*bag, bags, &mut HashMap::new()))
         .count() as u32
@@ -149,8 +147,7 @@ fn contains_shiny_gold_bag(
     contains
 }
 
-#[aoc(day7, part2)]
-fn part2(bags: &HashMap<String, Option<Vec<(u8, String)>>>) -> u32 {
+pub fn part2(bags: &HashMap<String, Option<Vec<(u8, String)>>>) -> u32 {
     number_of_contained_bags("shiny gold", bags, &mut HashMap::new())
 }
 

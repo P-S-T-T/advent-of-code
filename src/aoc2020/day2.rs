@@ -39,31 +39,31 @@ How many passwords are valid according to the new interpretation of the policies
 
 Your puzzle answer was 497.
 */
-use crate::parse_error::ParseError;
 
-struct PasswdRule {
+use crate::utils::parse_error::ParseError;
+
+pub struct PasswdRule {
     min_occurrence: usize,
     max_occurrence: usize,
     rule_char: char,
     pw: String,
 }
 
-#[aoc_generator(day2)]
-fn parse_input_pw_list(password_list: &str) -> Vec<PasswdRule> {
+pub fn parse_input_pw_list(password_list: &str) -> Vec<PasswdRule> {
     password_list
         .lines()
         .map(|password_check| {
             let mut part = password_check.split(' ');
-            let mut occurrence = part.next().ok_or(ParseError::NoneError)?.split('-');
-            let min_occurrence: usize = occurrence.next().ok_or(ParseError::NoneError)?.parse()?;
-            let max_occurrence: usize = occurrence.next().ok_or(ParseError::NoneError)?.parse()?;
+            let mut occurrence = part.next().ok_or(ParseError::None)?.split('-');
+            let min_occurrence: usize = occurrence.next().ok_or(ParseError::None)?.parse()?;
+            let max_occurrence: usize = occurrence.next().ok_or(ParseError::None)?.parse()?;
             let rule_char = part
                 .next()
-                .ok_or(ParseError::NoneError)?
+                .ok_or(ParseError::None)?
                 .chars()
                 .next()
-                .ok_or(ParseError::NoneError)?;
-            let pw = part.next().ok_or(ParseError::NoneError)?;
+                .ok_or(ParseError::None)?;
+            let pw = part.next().ok_or(ParseError::None)?;
 
             Ok(PasswdRule {
                 min_occurrence,
@@ -76,8 +76,7 @@ fn parse_input_pw_list(password_list: &str) -> Vec<PasswdRule> {
         .expect("Input could not be parsed")
 }
 
-#[aoc(day2, part1)]
-fn part1(parsed_rules: &[PasswdRule]) -> usize {
+pub fn part1(parsed_rules: &[PasswdRule]) -> usize {
     parsed_rules
         .iter()
         .filter(|rule| {
@@ -87,8 +86,7 @@ fn part1(parsed_rules: &[PasswdRule]) -> usize {
         .count()
 }
 
-#[aoc(day2, part2)]
-fn part2(parsed_rules: &[PasswdRule]) -> usize {
+pub fn part2(parsed_rules: &[PasswdRule]) -> usize {
     parsed_rules
         .iter()
         .filter(|rule| {
@@ -96,12 +94,10 @@ fn part2(parsed_rules: &[PasswdRule]) -> usize {
                 false
             } else {
                 let mut pw_iter = rule.pw.chars();
-                let first_char = pw_iter
-                    .nth(rule.min_occurrence - 1)
-                    .ok_or(ParseError::NoneError);
+                let first_char = pw_iter.nth(rule.min_occurrence - 1).ok_or(ParseError::None);
                 let second_char = pw_iter
                     .nth(rule.max_occurrence - rule.min_occurrence - 1)
-                    .ok_or(ParseError::NoneError);
+                    .ok_or(ParseError::None);
                 let first_bool = match first_char {
                     Err(_) => false,
                     Ok(first_char) => first_char == rule.rule_char,

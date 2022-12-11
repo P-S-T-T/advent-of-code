@@ -71,8 +71,7 @@ What do you get if you multiply together the number of trees encountered on each
 
 3_093_068_400
 */
-#[aoc_generator(day3)]
-fn get_input_map(map: &str) -> Vec<String> {
+pub fn get_input_map(map: &str) -> Vec<String> {
     map.lines().map(|str| str.trim().to_string()).collect()
 }
 
@@ -98,13 +97,11 @@ fn ride(forest_map: &[String], slope: &Slope) -> usize {
     re
 }
 
-#[aoc(day3, part1)]
-fn part1(forest_map: &[String]) -> usize {
+pub fn part1(forest_map: &[String]) -> usize {
     ride(forest_map, &Slope { down: 1, right: 3 })
 }
 
-#[aoc(day3, part2)]
-fn part2(forest_map: &[String]) -> usize {
+pub fn part2(forest_map: &[String]) -> usize {
     let slopes = &[
         Slope { down: 1, right: 1 },
         Slope { down: 1, right: 3 },

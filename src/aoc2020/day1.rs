@@ -41,16 +41,14 @@ Your puzzle answer was 287730716.
 // use aoc_runner_derive::{aoc, aoc_generator};
 use std::cmp::Ordering;
 
-#[aoc_generator(day1)]
-fn parse_input_day1(input: &str) -> Vec<usize> {
+pub fn parse_input_day1(input: &str) -> Vec<usize> {
   input
     .lines()
     .map(|v| v.parse().expect("Failed to parse input!"))
     .collect()
 }
 
-#[aoc(day1, part1)]
-fn part1(expense_report: &[usize]) -> usize {
+pub fn part1(expense_report: &[usize]) -> usize {
   for compare_index in 1..expense_report.len() - 1 {
     for current in expense_report.iter() {
       if (expense_report[compare_index] + current) == 2020 {
@@ -68,8 +66,7 @@ fn part1(expense_report: &[usize]) -> usize {
   0
 }
 
-#[aoc(day1, part2)]
-fn part2(expense_report: &[usize]) -> usize {
+pub fn part2(expense_report: &[usize]) -> usize {
   let mut sorted_expense_report = expense_report.to_owned();
   sorted_expense_report.sort_unstable();
 

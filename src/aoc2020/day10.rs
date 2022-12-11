@@ -155,8 +155,7 @@ struct ResultingVolts {
     jolt_3: usize,
 }
 
-#[aoc_generator(day10)]
-fn parse_input(input: &str) -> Vec<usize> {
+pub fn parse_input(input: &str) -> Vec<usize> {
     input
         .lines()
         .map(|e| {
@@ -166,8 +165,8 @@ fn parse_input(input: &str) -> Vec<usize> {
         .collect()
 }
 
-#[aoc(day10, part1)]
-fn part1(input: &[usize]) -> usize {
+
+pub fn part1(input: &[usize]) -> usize {
     let jolts = find_jolts(input);
     jolts.jolt_1 * jolts.jolt_3
 }
@@ -273,13 +272,11 @@ fn combinations_recursive_o_n(input: &[usize]) -> usize {
     }
 }
 
-#[aoc(day10, part2, hardcoded)]
-fn part2(input: &[usize]) -> usize {
+pub fn part2(input: &[usize]) -> usize {
     combinations_hardcoded(input)
 }
 
-#[aoc(day10, part2, combinations_recursive_o_n)]
-fn part2_combinations_recursive_o_n(input: &[usize]) -> usize {
+pub fn part2_combinations_recursive_o_n(input: &[usize]) -> usize {
     combinations_recursive_o_n(input)
 }
 

@@ -48,16 +48,14 @@ What is the ID of the earliest bus you can take to the airport multiplied by the
 
 */
 
-#[aoc_generator(day13)]
-fn parse_input(input: &str) -> (usize, Vec<&str>) {
+pub fn parse_input(input: &str) -> (usize, Vec<&str>) {
     let input_split: Vec<&str> = input.split('\n').collect();
     let start_time: usize = input_split[0].parse().unwrap();
     let entries: Vec<&str> = input_split[1].split(',').collect();
     (start_time, entries)
 }
 
-#[aoc(day13, part1)]
-fn part1(input: &(usize, Vec<&str>)) -> isize {
+pub fn part1(input: &(usize, Vec<&str>)) -> isize {
     let local_input = input.clone();
     let start_time = local_input.0;
     let bus_lines: Vec<usize> = local_input
@@ -70,6 +68,30 @@ fn part1(input: &(usize, Vec<&str>)) -> isize {
         })
         .collect();
     0
+}
+
+// start
+// b * y => start
+//     y => start/b
+//
+fn get_earliest_bus_and_departure_time(start_time: usize, bus_lines: &[usize]) {
+    let bus_and_times = bus_lines
+        .iter()
+        .map(|bus| {
+            let time = {
+                let this = start_time;
+                let rhs = bus;
+                let d = this / rhs;
+                let r = this % rhs;
+                if r > 0 && *rhs > 0_usize {
+                    d + 1
+                } else {
+                    d
+                }
+            };
+        })
+        .collect();
+    todo!()
 }
 
 #[cfg(test)]
@@ -85,8 +107,8 @@ mod tests {
         assert_eq!(25, part1(&parse_input(SAMPLE_INPUT_1)));
     }
 
-    #[test]
-    fn test_part2_sample_1() {
-        assert_eq!(286, part2(&parse_input(SAMPLE_INPUT_1)));
-    }
+    // #[test]
+    // fn test_part2_sample_1() {
+    //     assert_eq!(286, part2(&parse_input(SAMPLE_INPUT_1)));
+    // }
 }

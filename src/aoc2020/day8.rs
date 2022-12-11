@@ -91,7 +91,7 @@ Fix the program so that it terminates normally by changing exactly one jmp (to n
 631
 */
 #[derive(Debug, Clone)]
-enum Instruction {
+pub enum Instruction {
     Acc(isize),
     Nop(isize),
     Jmp(isize),
@@ -102,8 +102,7 @@ struct ExecutionReport {
     terminated: bool,
 }
 
-#[aoc_generator(day8)]
-fn parse_input(input: &str) -> Vec<Instruction> {
+pub fn parse_input(input: &str) -> Vec<Instruction> {
     let input_lines = input.lines();
     let mut instructions: Vec<Instruction> =
         Vec::with_capacity(input_lines.size_hint().1.unwrap_or(0));
@@ -131,8 +130,7 @@ fn parse_input(input: &str) -> Vec<Instruction> {
     instructions
 }
 
-#[aoc(day8, part1)]
-fn part1(instructions: &[Instruction]) -> isize {
+pub fn part1(instructions: &[Instruction]) -> isize {
     execute_boot_code(instructions).result
 }
 
@@ -161,8 +159,7 @@ fn execute_boot_code(instructions: &[Instruction]) -> ExecutionReport {
     }
 }
 
-#[aoc(day8, part2)]
-fn part2(instructions: &[Instruction]) -> isize {
+pub fn part2(instructions: &[Instruction]) -> isize {
     //run unaltered
     let mut execution_report = execute_boot_code(instructions);
     if execution_report.terminated {
