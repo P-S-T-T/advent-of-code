@@ -55,43 +55,36 @@ pub fn parse_input(input: &str) -> (usize, Vec<&str>) {
     (start_time, entries)
 }
 
-pub fn part1(input: &(usize, Vec<&str>)) -> isize {
+pub fn part1(input: &(usize, Vec<&str>)) -> usize {
     let local_input = input.clone();
     let start_time = local_input.0;
     let bus_lines: Vec<usize> = local_input
         .1
         .iter()
-        .filter(|x| **x == "x")
-        .map(|i| {
-            i.parse()
-                .expect(format!("input wrong, expected number but got {}", i).as_str())
-        })
+        .filter_map(|i| i.parse::<usize>().ok())
         .collect();
-    0
+    let (bus, time) = get_earliest_bus_and_departure_time(start_time, bus_lines);
+    (time - start_time) * bus
 }
 
-// start
-// b * y => start
-//     y => start/b
-//
-fn get_earliest_bus_and_departure_time(start_time: usize, bus_lines: &[usize]) {
-    let bus_and_times = bus_lines
+fn get_earliest_bus_and_departure_time(start_time: usize, bus_lines: Vec<usize>) -> (usize, usize) {
+    bus_lines
         .iter()
         .map(|bus| {
             let time = {
-                let this = start_time;
-                let rhs = bus;
-                let d = this / rhs;
-                let r = this % rhs;
-                if r > 0 && *rhs > 0_usize {
+                let d = start_time / *bus;
+                let r = start_time % *bus;
+                if r > 0 && *bus > 0_usize {
                     d + 1
                 } else {
                     d
                 }
             };
+            (*bus, bus * time)
+            // }).fold(0_usize,|pre, current| pre.min(current.1) )
         })
-        .collect();
-    todo!()
+        .reduce(|pre, current| if pre.1 > current.1 { current } else { pre })
+        .expect("iterator was empty!!")
 }
 
 #[cfg(test)]
@@ -104,7 +97,7 @@ mod tests {
 
     #[test]
     fn test_part1_sample_1() {
-        assert_eq!(25, part1(&parse_input(SAMPLE_INPUT_1)));
+        assert_eq!(295, part1(&parse_input(SAMPLE_INPUT_1)));
     }
 
     // #[test]
