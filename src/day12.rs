@@ -67,6 +67,7 @@ After these operations, the ship's Manhattan distance from its starting position
 
 Figure out where the navigation instructions actually lead. What is the Manhattan distance between that location and the ship's starting position?
 
+52742
 */
 
 #[derive(Clone)]
@@ -177,13 +178,6 @@ fn execute_instruction(instruction: &Instruction, position: &mut Position) {
 }
 
 fn calculate_manhattan_distance(position: &Position) -> isize {
-    println!(
-        "{} + {} = {}",
-        position.north,
-        position.east,
-        position.north.abs() + position.east.abs()
-    );
-
     position.east.abs() + position.north.abs()
 }
 
