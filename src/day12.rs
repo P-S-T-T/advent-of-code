@@ -52,11 +52,13 @@ Action W means to move the waypoint west by the given value.
 Action L means to rotate the waypoint around the ship left (counter-clockwise) the given number of degrees.
 Action R means to rotate the waypoint around the ship right (clockwise) the given number of degrees.
 Action F means to move forward to the waypoint a number of times equal to the given value.
+
 The waypoint starts 10 units east and 1 unit north relative to the ship. The waypoint is relative to the ship; that is, if the ship moves, the waypoint moves with it.
 
 For example, using the same instructions as above:
 
-F10 moves the ship to the waypoint 10 times (a total of 100 units east and 10 units north), leaving the ship at east 100, north 10. The waypoint stays 10 units east and 1 unit north of the ship.
+F10 moves the ship to the waypoint 10 times (a total of 100 units east and 10 units north), leaving the
+ship at east 100, north 10. The waypoint stays 10 units east and 1 unit north of the ship.
 N3 moves the waypoint 3 units north to 10 units east and 4 units north of the ship. The ship remains at east 100, north 10.
 F7 moves the ship to the waypoint 7 times (a total of 70 units east and 28 units north), leaving the ship at east 170, north 38. The waypoint stays 10 units east and 4 units north of the ship.
 R90 rotates the waypoint around the ship clockwise 90 degrees, moving it to 4 units east and 10 units south of the ship. The ship remains at east 170, north 38.
@@ -64,6 +66,7 @@ F11 moves the ship to the waypoint 11 times (a total of 44 units east and 110 un
 After these operations, the ship's Manhattan distance from its starting position is 214 + 72 = 286.
 
 Figure out where the navigation instructions actually lead. What is the Manhattan distance between that location and the ship's starting position?
+
 */
 
 #[derive(Clone)]
@@ -174,14 +177,88 @@ fn execute_instruction(instruction: &Instruction, position: &mut Position) {
 }
 
 fn calculate_manhattan_distance(position: &Position) -> isize {
+    println!(
+        "{} + {} = {}",
+        position.north,
+        position.east,
+        position.north.abs() + position.east.abs()
+    );
+
     position.east.abs() + position.north.abs()
 }
 
-// #[aoc(day12, part2)]
-// fn part2(input: &SeatingArea) -> usize {
-//     let steady_state = simulate_part2(input.clone());
-//     count_seats(steady_state)
-// }
+#[aoc(day12, part2)]
+fn part2(input: &[Instruction]) -> isize {
+    let mut waypoint_position = Position {
+        north: 1,
+        east: 10,
+        facing: Direction::East,
+    };
+    let mut ship_position = Position {
+        north: 0,
+        east: 0,
+        facing: Direction::East,
+    };
+    execute_instructions_part2(&mut ship_position, &mut waypoint_position, input);
+    calculate_manhattan_distance(&ship_position)
+}
+
+fn execute_instructions_part2(
+    ship_position: &mut Position,
+    waypoint_position: &mut Position,
+    instructions: &[Instruction],
+) {
+    for instruction in instructions {
+        if let Instruction::Forward(units) = instruction {
+            ship_position.north += waypoint_position.north * units;
+            ship_position.east += waypoint_position.east * units;
+        } else {
+            execute_instruction_part2(instruction, waypoint_position);
+        }
+    }
+}
+fn execute_instruction_part2(instruction: &Instruction, position: &mut Position) {
+    match instruction {
+        Instruction::Move(direction, units) => match direction {
+            Direction::West => position.east -= *units,
+            Direction::South => position.north -= *units,
+            Direction::East => position.east += *units,
+            Direction::North => position.north += *units,
+        },
+
+        Instruction::TurnRight(degrees) => turn_waypoint(*degrees, position),
+        Instruction::TurnLeft(degrees) => turn_waypoint(-degrees, position),
+
+        Instruction::Forward(_) => {
+            panic!("Forward should have been handled in the if-let statement before!!")
+        }
+    }
+}
+
+fn turn_waypoint(degrees: isize, position: &mut Position) {
+    if degrees % 90 > 0 {
+        panic!("not only right angles! Degree is {}.", degrees)
+    }
+    let turns = degrees / 90 % 4;
+    match turns {
+        0 => {} //return position,
+        -3 | 1 => {
+            let north = position.north;
+            position.north = -position.east;
+            position.east = north;
+        }
+        -2 | 2 => {
+            position.north = -position.north;
+            position.east = -position.east;
+        }
+        -1 | 3 => {
+            let north = position.north;
+            position.north = position.east;
+            position.east = -north;
+        }
+        _ => panic!("Impossible angle!"),
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -235,8 +312,8 @@ F10
         assert_eq!(0, part1(&parse_input(SAMPLE_INPUT_5)));
     }
 
-    // #[test]
-    // fn test_part2_sample_1() {
-    //     assert_eq!(26, part2(&parse_input(SAMPLE_INPUT_1)));
-    // }
+    #[test]
+    fn test_part2_sample_1() {
+        assert_eq!(286, part2(&parse_input(SAMPLE_INPUT_1)));
+    }
 }
