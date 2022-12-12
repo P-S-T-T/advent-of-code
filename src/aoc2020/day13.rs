@@ -111,8 +111,6 @@ However, with so many bus IDs in your list, surely the actual earliest timestamp
 What is the earliest timestamp such that all of the listed bus IDs depart at offsets matching their positions in the list?
 */
 
-use std::num::ParseIntError;
-
 pub fn parse_input(input: &str) -> (usize, Vec<&str>) {
     let input_split: Vec<&str> = input.split('\n').collect();
     let start_time: usize = input_split[0].parse().unwrap();
@@ -151,12 +149,18 @@ pub fn part2(input: &(usize, Vec<&str>)) -> usize {
     bus_with_index.sort_unstable_by(|(_, a_bus), (_, b_bus)| a_bus.cmp(b_bus));
 
     let mut all_ok = false;
-    let mut time = bus_with_index[bus_with_index.len()-1].1 * bus_with_index[bus_with_index.len()-2].1;
-    while all_ok {
-        if !bus_with_index.iter().map(|(index, bus)| time+index % bus == 0).any(|x| !x) {
+    let mut time =
+        bus_with_index[bus_with_index.len() - 1].1 * bus_with_index[bus_with_index.len() - 2].1;
+    while !all_ok {
+        if !bus_with_index
+            .iter()
+            .map(|(index, bus)| (time + index) % bus != 0)
+            .any(|x| x)
+        {
             all_ok = true
         } else {
-            time += time
+            println!("time tested {}", time);
+            time += 1
         }
     }
 
@@ -198,7 +202,7 @@ mod tests {
 
     #[test]
     fn test_part2_sample_1() {
-        assert_eq!(286, part2(&parse_input(SAMPLE_INPUT_1)));
+        assert_eq!(1068781, part2(&parse_input(SAMPLE_INPUT_1)));
     }
 
     const SAMPLE_INPUT_2: &str = "939
