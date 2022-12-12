@@ -146,13 +146,12 @@ pub fn part2(input: &(usize, Vec<&str>)) -> usize {
         .map(|(index, bus)| (index, bus.parse::<usize>().expect("wrong value in input!")))
         .collect();
 
-    bus_with_index.sort_unstable_by(|(_, a_bus), (_, b_bus)| a_bus.cmp(b_bus));
-
     let mut all_ok = false;
-    let mut time =
-        bus_with_index[bus_with_index.len() - 1].1 * bus_with_index[bus_with_index.len() - 2].1;
+    let increase = bus_with_index[0].1;
     let mut correct_times: Vec<Vec<usize>> = vec![vec![0_usize; 1]; bus_with_index.len() - 1];
-
+    let mut time = increase;
+    println!("busses {:?}", bus_with_index);
+    println!("increase {}", increase);
     while !all_ok {
         let correct = bus_with_index
             .iter()
@@ -163,7 +162,7 @@ pub fn part2(input: &(usize, Vec<&str>)) -> usize {
             all_ok = true
         } else {
             println!("{} correct, time tested {}", correct, time);
-            if correct > 0 {
+            if correct > 1 {
                 let mut times = correct_times
                     .get(correct)
                     .unwrap_or(&vec![0_usize])
@@ -178,10 +177,10 @@ pub fn part2(input: &(usize, Vec<&str>)) -> usize {
 
                     println!("skipping to {}", time)
                 } else {
-                    time += bus_with_index.first().unwrap().1;
+                    time += increase; //bus_with_index.first().unwrap().1;
                 }
             } else {
-                time += bus_with_index.first().unwrap().1;
+                time += increase; // bus_with_index.first().unwrap().1;
             }
         }
     }
