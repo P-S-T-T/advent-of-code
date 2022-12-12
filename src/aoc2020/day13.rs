@@ -162,7 +162,7 @@ pub fn part2(input: &(usize, Vec<&str>)) -> usize {
         if correct == bus_with_index.len() {
             all_ok = true
         } else {
-            println!("time tested {}", time);
+            println!("{} correct, time tested {}", correct, time);
             if correct > 0 {
                 let mut times = correct_times
                     .get(correct)
@@ -174,12 +174,14 @@ pub fn part2(input: &(usize, Vec<&str>)) -> usize {
 
                 let difference = time - last_time;
                 if difference > time {
-                    time = difference
+                    time = difference;
+
+                    println!("skipping to {}", time)
                 } else {
-                    time += 1
+                    time += bus_with_index.first().unwrap().1;
                 }
             } else {
-                time += 1
+                time += bus_with_index.first().unwrap().1;
             }
         }
     }
