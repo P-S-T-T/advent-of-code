@@ -151,16 +151,36 @@ pub fn part2(input: &(usize, Vec<&str>)) -> usize {
     let mut all_ok = false;
     let mut time =
         bus_with_index[bus_with_index.len() - 1].1 * bus_with_index[bus_with_index.len() - 2].1;
+    let mut correct_times: Vec<Vec<usize>> = vec![vec![0_usize; 1]; bus_with_index.len() - 1];
+
     while !all_ok {
-        if !bus_with_index
+        let correct = bus_with_index
             .iter()
             .map(|(index, bus)| (time + index) % bus != 0)
-            .any(|x| x)
-        {
+            .fold(0_usize, |acc, x| if !x { acc + 1 } else { acc });
+        //            .any(|x| x)
+        if correct == bus_with_index.len() {
             all_ok = true
         } else {
             println!("time tested {}", time);
-            time += 1
+            if correct > 0 {
+                let mut times = correct_times
+                    .get(correct)
+                    .unwrap_or(&vec![0_usize])
+                    .to_owned();
+                let last_time = *times.last().unwrap_or(&0_usize);
+                times.push(time);
+                correct_times.insert(correct, times);
+
+                let difference = time - last_time;
+                if difference > time {
+                    time = difference
+                } else {
+                    time += 1
+                }
+            } else {
+                time += 1
+            }
         }
     }
 
