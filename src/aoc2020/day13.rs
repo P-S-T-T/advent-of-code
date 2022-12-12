@@ -146,8 +146,13 @@ pub fn part2(input: &(usize, Vec<&str>)) -> usize {
         .map(|(index, bus)| (index, bus.parse::<usize>().expect("wrong value in input!")))
         .collect();
 
+    bus_with_index.sort_unstable_by(|(_, a_bus), (_, b_bus)| a_bus.cmp(b_bus));
+
     let mut all_ok = false;
-    let increase = bus_with_index[0].1;
+    let increase = bus_with_index.last().unwrap().1;
+    let target_offset = bus_with_index.last().unwrap().0;
+    // let increase =
+    //     bus_with_index[bus_with_index.len() - 1].1 * bus_with_index[bus_with_index.len() - 2].1;
     let mut correct_times: Vec<Vec<usize>> = vec![vec![0_usize; 1]; bus_with_index.len() - 1];
     let mut time = increase;
     println!("busses {:?}", bus_with_index);
@@ -155,13 +160,12 @@ pub fn part2(input: &(usize, Vec<&str>)) -> usize {
     while !all_ok {
         let correct = bus_with_index
             .iter()
-            .map(|(index, bus)| (time + index) % bus != 0)
+            .map(|(index, bus)| (time - target_offset + index) % bus != 0)
             .fold(0_usize, |acc, x| if !x { acc + 1 } else { acc });
-        //            .any(|x| x)
         if correct == bus_with_index.len() {
             all_ok = true
         } else {
-            println!("{} correct, time tested {}", correct, time);
+        //  println!("{} correct, time tested {}", correct, time);
             if correct > 1 {
                 let mut times = correct_times
                     .get(correct)
@@ -177,15 +181,15 @@ pub fn part2(input: &(usize, Vec<&str>)) -> usize {
 
                     println!("skipping to {}", time)
                 } else {
-                    time += increase; //bus_with_index.first().unwrap().1;
+                    time += increase;
                 }
             } else {
-                time += increase; // bus_with_index.first().unwrap().1;
+                time += increase;
             }
         }
     }
 
-    time
+    time - target_offset
 }
 
 fn get_earliest_bus_and_departure_time(start_time: usize, bus_lines: Vec<usize>) -> (usize, usize) {
