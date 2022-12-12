@@ -45,8 +45,73 @@ The earliest bus you could take is bus ID 59. It doesn't depart until timestamp 
 
 What is the ID of the earliest bus you can take to the airport multiplied by the number of minutes you'll need to wait for that bus?
 
+Your puzzle answer was 207.
 
+The first half of this puzzle is complete! It provides one gold star: *
+
+--- Part Two ---
+
+The shuttle company is running a contest: one gold coin for anyone that can find the earliest timestamp such that the first bus ID departs at that time and each subsequent listed bus ID departs at that subsequent minute. (The first line in your input is no longer relevant.)
+
+For example, suppose you have the same list of bus IDs as above:
+
+7,13,x,x,59,x,31,19
+An x in the schedule means there are no constraints on what bus IDs must depart at that time.
+
+This means you are looking for the earliest timestamp (called t) such that:
+
+Bus ID 7 departs at timestamp t.
+Bus ID 13 departs one minute after timestamp t.
+There are no requirements or restrictions on departures at two or three minutes after timestamp t.
+Bus ID 59 departs four minutes after timestamp t.
+There are no requirements or restrictions on departures at five minutes after timestamp t.
+Bus ID 31 departs six minutes after timestamp t.
+Bus ID 19 departs seven minutes after timestamp t.
+The only bus departures that matter are the listed bus IDs at their specific offsets from t. Those bus IDs can depart at other times, and other bus IDs can depart at those times. For example, in the list above, because bus ID 19 must depart seven minutes after the timestamp at which bus ID 7 departs, bus ID 7 will always also be departing with bus ID 19 at seven minutes after timestamp t.
+
+In this example, the earliest timestamp at which this occurs is 1068781:
+
+time     bus 7   bus 13  bus 59  bus 31  bus 19
+1068773    .       .       .       .       .
+1068774    D       .       .       .       .
+1068775    .       .       .       .       .
+1068776    .       .       .       .       .
+1068777    .       .       .       .       .
+1068778    .       .       .       .       .
+1068779    .       .       .       .       .
+1068780    .       .       .       .       .
+1068781    D       .       .       .       .
+1068782    .       D       .       .       .
+1068783    .       .       .       .       .
+1068784    .       .       .       .       .
+1068785    .       .       D       .       .
+1068786    .       .       .       .       .
+1068787    .       .       .       D       .
+1068788    D       .       .       .       D
+1068789    .       .       .       .       .
+1068790    .       .       .       .       .
+1068791    .       .       .       .       .
+1068792    .       .       .       .       .
+1068793    .       .       .       .       .
+1068794    .       .       .       .       .
+1068795    D       D       .       .       .
+1068796    .       .       .       .       .
+1068797    .       .       .       .       .
+In the above example, bus ID 7 departs at timestamp 1068788 (seven minutes after t). This is fine; the only requirement on that minute is that bus ID 19 departs then, and it does.
+
+Here are some other examples:
+
+The earliest timestamp that matches the list 17,x,13,19 is 3417.
+67,7,59,61 first occurs at timestamp 754018.
+67,x,7,59,61 first occurs at timestamp 779210.
+67,7,x,59,61 first occurs at timestamp 1261476.
+1789,37,47,1889 first occurs at timestamp 1202161486.
+However, with so many bus IDs in your list, surely the actual earliest timestamp will be larger than 100000000000000!
+
+What is the earliest timestamp such that all of the listed bus IDs depart at offsets matching their positions in the list?
 */
+
+use std::num::ParseIntError;
 
 pub fn parse_input(input: &str) -> (usize, Vec<&str>) {
     let input_split: Vec<&str> = input.split('\n').collect();
@@ -65,6 +130,37 @@ pub fn part1(input: &(usize, Vec<&str>)) -> usize {
         .collect();
     let (bus, time) = get_earliest_bus_and_departure_time(start_time, bus_lines);
     (time - start_time) * bus
+}
+
+pub fn part2(input: &(usize, Vec<&str>)) -> usize {
+    // t = x * a
+    // t+1 = y * b
+    // t+2 = z * c
+
+    // (t+i) mod b = 0
+
+    let mut bus_with_index: Vec<(usize, usize)> = input
+        .1
+        .clone()
+        .into_iter()
+        .enumerate()
+        .filter(|(_, bus)| *bus != "x")
+        .map(|(index, bus)| (index, bus.parse::<usize>().expect("wrong value in input!")))
+        .collect();
+
+    bus_with_index.sort_unstable_by(|(_, a_bus), (_, b_bus)| a_bus.cmp(b_bus));
+
+    let mut all_ok = false;
+    let mut time = bus_with_index[bus_with_index.len()-1].1 * bus_with_index[bus_with_index.len()-2].1;
+    while all_ok {
+        if !bus_with_index.iter().map(|(index, bus)| time+index % bus == 0).any(|x| !x) {
+            all_ok = true
+        } else {
+            time += time
+        }
+    }
+
+    time
 }
 
 fn get_earliest_bus_and_departure_time(start_time: usize, bus_lines: Vec<usize>) -> (usize, usize) {
@@ -100,8 +196,39 @@ mod tests {
         assert_eq!(295, part1(&parse_input(SAMPLE_INPUT_1)));
     }
 
-    // #[test]
-    // fn test_part2_sample_1() {
-    //     assert_eq!(286, part2(&parse_input(SAMPLE_INPUT_1)));
-    // }
+    #[test]
+    fn test_part2_sample_1() {
+        assert_eq!(286, part2(&parse_input(SAMPLE_INPUT_1)));
+    }
+
+    const SAMPLE_INPUT_2: &str = "939
+17,x,13,19";
+    #[test]
+    fn test_part2_sample_2() {
+        assert_eq!(3417, part2(&parse_input(SAMPLE_INPUT_2)));
+    }
+    const SAMPLE_INPUT_3: &str = "939
+67,7,59,61";
+    #[test]
+    fn test_part2_sample_3() {
+        assert_eq!(754018, part2(&parse_input(SAMPLE_INPUT_3)));
+    }
+    const SAMPLE_INPUT_4: &str = "939
+67,x,7,59,61";
+    #[test]
+    fn test_part2_sample_4() {
+        assert_eq!(779210, part2(&parse_input(SAMPLE_INPUT_4)));
+    }
+    const SAMPLE_INPUT_5: &str = "939
+67,7,x,59,61";
+    #[test]
+    fn test_part2_sample_5() {
+        assert_eq!(1261476, part2(&parse_input(SAMPLE_INPUT_5)));
+    }
+    const SAMPLE_INPUT_6: &str = "939
+1789,37,47,1889";
+    #[test]
+    fn test_part2_sample_6() {
+        assert_eq!(1202161486, part2(&parse_input(SAMPLE_INPUT_6)));
+    }
 }
