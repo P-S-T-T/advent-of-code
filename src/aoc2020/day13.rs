@@ -109,6 +109,7 @@ The earliest timestamp that matches the list 17,x,13,19 is 3417.
 However, with so many bus IDs in your list, surely the actual earliest timestamp will be larger than 100000000000000!
 
 What is the earliest timestamp such that all of the listed bus IDs depart at offsets matching their positions in the list?
+530015546283687
 */
 
 pub fn parse_input(input: &str) -> (usize, Vec<&str>) {
@@ -130,68 +131,6 @@ pub fn part1(input: &(usize, Vec<&str>)) -> usize {
     (time - start_time) * bus
 }
 
-pub fn part2(input: &(usize, Vec<&str>)) -> usize {
-    // t = x * a
-    // t+1 = y * b
-    // t+2 = z * c
-
-    // (t+i) mod b = 0
-
-    let mut bus_with_index: Vec<(usize, usize)> = input
-        .1
-        .clone()
-        .into_iter()
-        .enumerate()
-        .filter(|(_, bus)| *bus != "x")
-        .map(|(index, bus)| (index, bus.parse::<usize>().expect("wrong value in input!")))
-        .collect();
-
-    bus_with_index.sort_unstable_by(|(_, a_bus), (_, b_bus)| a_bus.cmp(b_bus));
-
-    let mut all_ok = false;
-    let increase = bus_with_index.last().unwrap().1;
-    let target_offset = bus_with_index.last().unwrap().0;
-    // let increase =
-    //     bus_with_index[bus_with_index.len() - 1].1 * bus_with_index[bus_with_index.len() - 2].1;
-    let mut correct_times: Vec<Vec<usize>> = vec![vec![0_usize; 1]; bus_with_index.len() - 1];
-    let mut time = increase;
-    println!("busses {:?}", bus_with_index);
-    println!("increase {}", increase);
-    while !all_ok {
-        let correct = bus_with_index
-            .iter()
-            .map(|(index, bus)| (time - target_offset + index) % bus != 0)
-            .fold(0_usize, |acc, x| if !x { acc + 1 } else { acc });
-        if correct == bus_with_index.len() {
-            all_ok = true
-        } else {
-        //  println!("{} correct, time tested {}", correct, time);
-            if correct > 1 {
-                let mut times = correct_times
-                    .get(correct)
-                    .unwrap_or(&vec![0_usize])
-                    .to_owned();
-                let last_time = *times.last().unwrap_or(&0_usize);
-                times.push(time);
-                correct_times.insert(correct, times);
-
-                let difference = time - last_time;
-                if difference > time {
-                    time = difference;
-
-                    println!("skipping to {}", time)
-                } else {
-                    time += increase;
-                }
-            } else {
-                time += increase;
-            }
-        }
-    }
-
-    time - target_offset
-}
-
 fn get_earliest_bus_and_departure_time(start_time: usize, bus_lines: Vec<usize>) -> (usize, usize) {
     bus_lines
         .iter()
@@ -210,6 +149,38 @@ fn get_earliest_bus_and_departure_time(start_time: usize, bus_lines: Vec<usize>)
         })
         .reduce(|pre, current| if pre.1 > current.1 { current } else { pre })
         .expect("iterator was empty!!")
+}
+
+pub fn part2(input: &(usize, Vec<&str>)) -> usize {
+    let mut bus_with_index: Vec<(usize, usize)> = input
+        .1
+        .clone()
+        .into_iter()
+        .enumerate()
+        .filter(|(_, bus)| *bus != "x")
+        .map(|(index, bus)| (index, bus.parse::<usize>().expect("wrong value in input!")))
+        .collect();
+
+    // println!("busses {:?}", bus_with_index);
+    let mut increase = bus_with_index.remove(0).1;
+    let mut timestamp = increase;
+    // println!("increase {}", increase);
+
+    for (index, bus) in bus_with_index {
+        while (timestamp + index) % bus != 0 {
+            timestamp += increase;
+            // println!(
+            //     "timestamp {} looking for bus {} with index {}",
+            //     timestamp, bus, index
+            // );
+        }
+        increase *= bus;
+        // println!(
+        //     "solved for bus {} in timestamp {}, increase is now {}",
+        //     bus, timestamp, increase
+        // );
+    }
+    timestamp
 }
 
 #[cfg(test)]
