@@ -155,9 +155,9 @@ pub fn part2(input: &(usize, Vec<&str>)) -> usize {
     let mut bus_with_index: Vec<(usize, usize)> = input
         .1
         .clone()
-        .into_iter()
+        .iter()
         .enumerate()
-        .filter(|(_, bus)| *bus != "x")
+        .filter(|(_, bus)| **bus != "x")
         .map(|(index, bus)| (index, bus.parse::<usize>().expect("wrong value in input!")))
         .collect();
 
@@ -183,6 +183,53 @@ pub fn part2(input: &(usize, Vec<&str>)) -> usize {
     timestamp
 }
 
+pub fn part2_with_chinese_rt(input: &(usize, Vec<&str>)) -> usize {
+    let bus_with_index = input
+        .1
+        .clone()
+        .into_iter()
+        .enumerate()
+        .filter(|(_, bus)| *bus != "x")
+        .map(|(index, bus)| (index, bus.parse::<usize>().expect("wrong value in input!")));
+    let (residues, modulii): (Vec<i64>, Vec<i64>) = bus_with_index
+        .map(|(index, bus)| ((bus as i64 - index as i64), bus as i64))
+        .unzip();
+    match chinese_remainder(&residues, &modulii) {
+        Some(sol) => sol.try_into().expect("negative chinese result!"),
+        None => panic!("modulii not pairwise coprime"),
+    }
+}
+
+// from https://rosettacode.org/wiki/Chinese_remainder_theorem#Rust
+fn chinese_remainder(residues: &[i64], modulii: &[i64]) -> Option<i64> {
+    let prod = modulii.iter().product::<i64>();
+
+    let mut sum = 0;
+
+    for (&residue, &modulus) in residues.iter().zip(modulii) {
+        let p = prod / modulus;
+        sum += residue * mod_inv(p, modulus)? * p
+    }
+
+    Some(sum % prod)
+}
+fn mod_inv(x: i64, n: i64) -> Option<i64> {
+    let (g, x, _) = egcd(x, n);
+    if g == 1 {
+        Some((x % n + n) % n)
+    } else {
+        None
+    }
+}
+fn egcd(a: i64, b: i64) -> (i64, i64, i64) {
+    if a == 0 {
+        (b, 0, 1)
+    } else {
+        let (g, x, y) = egcd(b % a, a);
+        (g, y - (b / a) * x, x)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -206,6 +253,10 @@ mod tests {
     #[test]
     fn test_part2_sample_2() {
         assert_eq!(3417, part2(&parse_input(SAMPLE_INPUT_2)));
+    }
+    #[test]
+    fn test_part2_crt_sample_2() {
+        assert_eq!(3417, part2_with_chinese_rt(&parse_input(SAMPLE_INPUT_2)));
     }
     const SAMPLE_INPUT_3: &str = "939
 67,7,59,61";

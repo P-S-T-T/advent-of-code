@@ -17,5 +17,5 @@ aoc_main::main! {
     day10 : parse_input => part1, part2, part2_combinations_recursive_o_n;
     day11 : parse_input => part1, part2;
     day12 : parse_input => part1, part2;
-    day13 : parse_input => part1, part2;
+    day13 : parse_input => part1, part2, part2_with_chinese_rt;
 }
