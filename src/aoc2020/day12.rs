@@ -92,7 +92,7 @@ impl Direction {
         let ticks = degrees / 90;
         let turns = ticks % 4;
 
-        let direction = (*self as isize + turns) % 4;
+        let direction = ((*self).clone() as isize + turns) % 4;
 
         match direction {
             0 => Self::East,
